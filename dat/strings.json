@@ -945,5 +945,6 @@
 	"HINT_GRAPHICS_PROGRESS": "Show explored tiles in the Map",
 	"CONFIRM_SEARCH": "Will you search?",
 	"FOUND_AN_ITEM": " has found an item!",
+	"GAME_MESSAGE_PARTY_INVENTORY_FULL": "The party has no room for the item.",
 	"NOTHING_FOUND": "Nothing was found!"
 }

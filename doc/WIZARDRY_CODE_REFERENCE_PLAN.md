@@ -36,16 +36,25 @@ Sorcery status:
 
 - `Inventory::get_empty_slots()` and `Inventory::add_type()` already exist.
 - Party membership is available through `State::get_party_characters()`.
-- Item distribution code should avoid direct insertion into a single selected
-  character unless the rule explicitly requires it.
+- `Game::give_item_to_party(const Item &, bool log_inventory_full)` is
+  implemented in `src/types/game.cpp` and returns `GiveItemToPartyResult`
+  (`GIVEN` / `NO_PARTY_MEMBERS` / `PARTY_INVENTORY_FULL`). It scans party
+  members via `State::get_party_characters()` and inserts into the first
+  member with a free slot.
+- `dat/strings.json` and `dat/strings.ja.json` already define
+  `GAME_MESSAGE_PARTY_INVENTORY_FULL`, emitted via `state->add_log_message(...)`
+  when no member has room.
+- Current callers: `Game::_debug_give_party_random_items` only. Future
+  treasure/chest/combat reward flows should route through this helper.
 
-Plan:
+Remaining work:
 
-1. Add a Game-level helper that attempts to give an item to the first eligible
-   party member with an empty inventory slot.
-2. Return an explicit result for `given` or `party_inventory_full`.
-3. Use that helper from future treasure/chest/combat reward flows.
-4. Add a user-facing message when the whole party has no room.
+1. Wire treasure/chest/combat reward paths through `give_item_to_party` as
+   those flows are implemented.
+2. Decide whether to surface `NO_PARTY_MEMBERS` to the player or treat it as a
+   programming error (currently silent in either log path).
+3. Consider an overload returning the recipient `char_id` if a future caller
+   needs to attribute the find to a specific character for messaging.
 
 Acceptance:
 
@@ -184,13 +193,21 @@ Acceptance:
 
 ## Suggested next implementation slice
 
-Start with the inventory-safe item award helper because it is small, local, and
-will be reused by treasure, chest, and combat reward work.
+The inventory-safe item award helper (`Game::give_item_to_party`) is already
+implemented and used by the random-item debug path. The next small, local slice
+that builds on it is to define the chest open/disarm flow skeleton, since the
+"Inventory and Item Manipulation" work is in progress and chest rewards will
+naturally route through the existing helper.
 
-Proposed first task:
+Proposed next task — chest flow skeleton:
 
-1. Add `Game::give_item_to_party(...)` or equivalent helper.
-2. Use `Inventory::get_empty_slots()` to find a recipient.
-3. Add a message key for party inventory full.
-4. Add a small debug path or focused unit-style check if the project has a
-   suitable test harness.
+1. Locate or introduce the chest interaction entry point in the dungeon event
+   path.
+2. Define an outcome enum covering identified, disarmed, triggered, treasure
+   awarded, and party-inventory-full (the last mapping straight to
+   `GiveItemToPartyResult::PARTY_INVENTORY_FULL`).
+3. Stub the trap identification path so Calfo's 95 percent figure and a thief's
+   agility check both feed into the same outcome enum, even if the dice rolls
+   are placeholders initially.
+4. Route any awarded treasure through `Game::give_item_to_party` so the
+   inventory-full case is handled consistently from the start.

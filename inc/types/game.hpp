@@ -37,6 +37,12 @@ class State;
 class Game {
 
 	public:
+		enum class GiveItemToPartyResult {
+			GIVEN,
+			NO_PARTY_MEMBERS,
+			PARTY_INVENTORY_FULL,
+		};
+
 		// Constructor
 		Game(Context &ctx);
 		Game() = default;
@@ -85,6 +91,9 @@ class Game {
 		auto divvy_party_gold() -> void;
 		auto move_party_to_tavern() -> void;
 		auto pool_party_gold(unsigned int char_id) -> void;
+		auto give_item_to_party(const Item &item,
+								bool log_inventory_full = true)
+			-> GiveItemToPartyResult;
 		auto log(const std::string &message, const int dice = -1,
 				 const int roll = -1, const int needed = -1) -> void;
 		auto get_event(Enums::Map::Event event_type) const -> DungeonEvent;

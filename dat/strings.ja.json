@@ -75,5 +75,6 @@
 	"SHOP_TITLE": "商店",
 	"SHOP_ENTER": "店に入る",
 	"SHOP_INSPECT": "パーティメンバーを見る",
-	"SHOP_CASTLE": "城"
+	"SHOP_CASTLE": "城",
+	"GAME_MESSAGE_PARTY_INVENTORY_FULL": "パーティにはそのアイテムを持つ空きがありません。"
 }

@@ -589,6 +589,35 @@ auto Sorcery::Game::pool_party_gold(unsigned int char_id) -> void {
 	}
 }
 
+auto Sorcery::Game::give_item_to_party(const Item &item,
+									   bool log_inventory_full)
+	-> GiveItemToPartyResult {
+
+	const auto party{state->get_party_characters()};
+	if (party.empty())
+		return GiveItemToPartyResult::NO_PARTY_MEMBERS;
+
+	for (const auto idx : party) {
+		auto it{characters.find(idx)};
+		if (it == characters.end())
+			continue;
+
+		auto &cur_char{it->second};
+		if (cur_char.inventory.get_empty_slots() > 0) {
+			cur_char.inventory.add(item);
+			return GiveItemToPartyResult::GIVEN;
+		}
+	}
+
+	if (log_inventory_full) {
+		state->add_log_message(
+			_ctx.get_string("GAME_MESSAGE_PARTY_INVENTORY_FULL"),
+			Enums::Internal::MessageType::GAME);
+	}
+
+	return GiveItemToPartyResult::PARTY_INVENTORY_FULL;
+}
+
 auto Sorcery::Game::print() -> void {
 
 	auto text{"Game:\n\n"s};
@@ -676,17 +705,20 @@ auto Sorcery::Game::_debug_give_party_random_items() -> void {
 
 	PRINT("debug_give_party_random_items");
 
+	auto total_slots_free{0u};
 	for (const auto party{state->get_party_characters()}; auto idx : party) {
-		auto &cur_char{characters.at(idx)};
-		auto slots_free = cur_char.inventory.get_empty_slots();
-		for (auto i = 0u; i < slots_free; i++) {
-			using enum Enums::Items::TypeID;
-			if (cur_char.inventory.get_empty_slots() > 0) {
-				auto item{_ctx.resources->items->get_random_item(
-					LONG_SWORD, RING_OF_DEATH)};
-				cur_char.inventory.add(item);
-			}
-		}
+		auto it{characters.find(idx)};
+		if (it != characters.end())
+			total_slots_free += it->second.inventory.get_empty_slots();
+	}
+
+	for (auto i = 0u; i < total_slots_free; i++) {
+		using enum Enums::Items::TypeID;
+		auto item{_ctx.resources->items->get_random_item(LONG_SWORD,
+														 RING_OF_DEATH)};
+		if (give_item_to_party(item, false) !=
+			GiveItemToPartyResult::GIVEN)
+			break;
 	}
 }
 
