@@ -25,6 +25,7 @@
 #include "core/context.hpp"
 #include "core/system.hpp"
 #include "resources/define.hpp"
+#include "resources/filestore.hpp"
 #include "types/config.hpp"
 
 #include <fstream>
@@ -38,8 +39,20 @@ Sorcery::FontStore::FontStore(Context &ctx, ImGuiIO &io)
 	// Get the Font Size from config
 	auto font_size{std::stof(_ctx.get_config("Font", "size"))};
 
-	// Now scan the data directory for TTF fonts
-	const std::filesystem::path file_path{DATA_DIR};
+	// Optional font tuning: bold-ish via RasterizerMultiply, wider via
+	// GlyphExtraAdvanceX. Missing keys keep ImGui defaults (1.0 / 0.0).
+	if (const auto mul{_ctx.get_config("Font", "rasterizer_multiply")};
+		!mul.empty())
+		_rasterizer_multiply = std::stof(mul);
+	if (const auto adv{_ctx.get_config("Font", "glyph_extra_advance_x")};
+		!adv.empty())
+		_glyph_extra_advance_x = std::stof(adv);
+
+	// Now scan the data directory for TTF fonts. Resolve against the exe's
+	// base path so the binary works when launched from a different working
+	// directory.
+	const std::filesystem::path file_path{_ctx.files->get_base_path() /
+										  DATA_DIR};
 	scan_and_load(file_path.string(), font_size);
 	_sort_fonts_by_name();
 }
@@ -94,7 +107,8 @@ auto Sorcery::FontStore::scan_and_load(const std::string &directory,
 		else
 			font_type = MONOSPACE;
 
-		if (ext == ".ttf" || ext == ".TTF") {
+		if (ext == ".ttf" || ext == ".TTF" || ext == ".ttc" ||
+			ext == ".TTC") {
 			const auto font_path{entry.path().string()};
 			if (_is_valid_ttf(font_path)) {
 				auto mono{_is_monospace_ttf(font_path)};
@@ -139,6 +153,8 @@ auto Sorcery::FontStore::_load_font(const std::string &path, float size,
 	config.OversampleV = 3;
 	config.PixelSnapH = false;
 	config.GlyphRanges = _io.Fonts->GetGlyphRangesJapanese();
+	config.RasterizerMultiply = _rasterizer_multiply;
+	config.GlyphExtraAdvanceX = _glyph_extra_advance_x;
 
 	ImFont *font{_io.Fonts->AddFontFromFileTTF(path.c_str(), size, &config)};
 	if (!font) {
