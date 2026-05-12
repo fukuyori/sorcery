@@ -24,7 +24,7 @@
 
 #include "resources/define.hpp"
 #include "resources/stringstore.hpp"
-#include <jsoncpp/json/json.h>
+#include "common/json.hpp"
 
 Sorcery::StringStore::StringStore(const std::string &filename)
 	: _filename{filename} {
@@ -40,10 +40,24 @@ auto Sorcery::StringStore::reload() -> void {
 
 auto Sorcery::StringStore::_load() -> bool {
 
+	return _load_file(_filename, true);
+}
+
+auto Sorcery::StringStore::load_overlay(const std::string &filename) -> bool {
+
+	return _load_file(filename, false);
+}
+
+auto Sorcery::StringStore::_load_file(const std::string &filename,
+									  bool clear_existing) -> bool {
+
 	// Attempt to load the Strings File
-	_strings.clear();
-	_strings["NONE"] = STRINGS_NOT_LOADED;
-	if (std::ifstream file{_filename, std::ifstream::binary}; file.good()) {
+	if (clear_existing) {
+		_strings.clear();
+		_strings["NONE"] = STRINGS_NOT_LOADED;
+	}
+
+	if (std::ifstream file{filename, std::ifstream::binary}; file.good()) {
 
 		// Iterate through the file
 		Json::Value root{};
@@ -51,29 +65,14 @@ auto Sorcery::StringStore::_load() -> bool {
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		Json::Reader reader{};
 #pragma GCC diagnostic pop
-		Json::StreamWriterBuilder builder{};
-		builder.settings_["indentation"] = "";
 		if (reader.parse(file, root, false)) {
 			for (Json::Value::iterator it = root.begin(); it != root.end();
 				 ++it) {
-				Json::Value key{it.key()};
-				Json::Value value{*it};
-				auto string_key{Json::writeString(builder, key)};
-				auto string_value{Json::writeString(builder, value)};
+				const auto string_key{it.key().asString()};
+				const auto string_value{it->asString()};
 
-				// Remove any Special Characters from the string
-				string_key.erase(
-					remove(string_key.begin(), string_key.end(), '\"'),
-					string_key.end());
-				string_value.erase(
-					remove(string_value.begin(), string_value.end(), '\"'),
-					string_value.end());
-				string_key.erase(
-					remove(string_key.begin(), string_key.end(), '\n'),
-					string_key.end());
-
-				// Insert it into the map
-				_strings[string_key] = string_value;
+				if (!string_key.empty())
+					_strings[string_key] = string_value;
 			}
 		} else
 			return false;

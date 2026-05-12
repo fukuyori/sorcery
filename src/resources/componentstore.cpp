@@ -23,12 +23,13 @@
 #include <fstream>
 
 #include "common/macro.hpp"
+#include "common/parse.hpp"
 #include "core/system.hpp"
 #include "resources/componentstore.hpp"
 #include "types/component.hpp"
 #include "types/error.hpp"
 #include "types/state.hpp"
-#include <jsoncpp/json/json.h>
+#include "common/json.hpp"
 
 // Standard Constructor
 Sorcery::ComponentStore::ComponentStore(const std::filesystem::path filename) {
@@ -218,8 +219,7 @@ auto Sorcery::ComponentStore::load(const std::filesystem::path filename)
 							if (components[j]["x"].asString() == "centre")
 								return -1;
 							else if (components[j]["x"].asString().length() > 0)
-								return (
-									std::stoi(components[j]["x"].asString()));
+								return PARSE_INT(components[j]["x"].asString());
 							else
 								return 0;
 						} else
@@ -230,8 +230,7 @@ auto Sorcery::ComponentStore::load(const std::filesystem::path filename)
 							if (components[j]["y"].asString() == "centre")
 								return -1;
 							else if (components[j]["y"].asString().length() > 0)
-								return (
-									std::stoi(components[j]["y"].asString()));
+								return PARSE_INT(components[j]["y"].asString());
 							else
 								return 0;
 						} else
@@ -240,8 +239,7 @@ auto Sorcery::ComponentStore::load(const std::filesystem::path filename)
 					auto w{[&] {
 						if (components[j].isMember("w")) {
 							if (components[j]["w"].asString().length() > 0) {
-								return static_cast<unsigned int>(
-									std::stoi(components[j]["w"].asString()));
+								return PARSE_UINT(components[j]["w"].asString());
 							} else
 								return 0u;
 						} else
@@ -250,8 +248,7 @@ auto Sorcery::ComponentStore::load(const std::filesystem::path filename)
 					auto h{[&] {
 						if (components[j].isMember("h")) {
 							if (components[j]["w"].asString().length() > 0) {
-								return static_cast<unsigned int>(
-									std::stoi(components[j]["h"].asString()));
+								return PARSE_UINT(components[j]["h"].asString());
 							} else
 								return 0u;
 						} else
@@ -357,8 +354,8 @@ auto Sorcery::ComponentStore::load(const std::filesystem::path filename)
 						if (components[j].isMember("priority")) {
 							if (components[j]["priority"].asString().length() >
 								0)
-								return static_cast<unsigned int>(std::stoi(
-									components[j]["priority"].asString()));
+								return PARSE_UINT(
+									components[j]["priority"].asString());
 							else
 								return 999u;
 						} else

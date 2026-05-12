@@ -72,6 +72,7 @@ void Sorcery::AudioPlayer::free_resources() {
 	_swr = nullptr;
 
 	_stream_index = -1;
+	_decode_failed = false;
 }
 
 void Sorcery::AudioPlayer::load(const std::string &filename) {
@@ -125,6 +126,7 @@ void Sorcery::AudioPlayer::load(const std::string &filename) {
 
 	// Clean up temp layout
 	av_channel_layout_uninit(&out_layout);
+	_decode_failed = false;
 }
 
 void Sorcery::AudioPlayer::play() {
@@ -155,18 +157,27 @@ void Sorcery::AudioPlayer::set_volume(float v) {
 }
 
 void Sorcery::AudioPlayer::update() {
-	if (!_playing || !_fmt)
+	if (!_playing || !_fmt || _decode_failed)
 		return;
 
 	const int TARGET_BUFFER = _spec.freq * _spec.channels * sizeof(float);
+	constexpr auto max_packets_per_update{512};
 
-	while (SDL_GetQueuedAudioSize(_device) < TARGET_BUFFER) {
+	for (auto packets_read{0};
+		 SDL_GetQueuedAudioSize(_device) < TARGET_BUFFER &&
+		 packets_read < max_packets_per_update;
+		 ++packets_read) {
 
 		if (av_read_frame(_fmt, _packet) < 0) {
 			// loop
-			av_seek_frame(_fmt, _stream_index, 0, AVSEEK_FLAG_BACKWARD);
+			if (av_seek_frame(_fmt, _stream_index, 0, AVSEEK_FLAG_BACKWARD) <
+				0) {
+				_decode_failed = true;
+				_playing = false;
+				return;
+			}
 			avcodec_flush_buffers(_codec);
-			continue;
+			return;
 		}
 
 		if (_packet->stream_index == _stream_index) {

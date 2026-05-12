@@ -26,7 +26,7 @@
 #include "core/macro.hpp"
 #include "types/enum.hpp"
 #include "types/tile.hpp"
-#include <jsoncpp/json/json.h>
+#include "common/json.hpp"
 
 namespace Sorcery {
 

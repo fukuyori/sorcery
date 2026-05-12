@@ -46,6 +46,7 @@ inline constexpr auto LICENSE_FILE{"LICENSE"sv};
 inline constexpr auto MAPS_FILE{"maps.json"sv};
 inline constexpr auto MONSTERS_FILE{"monsters.json"sv};
 inline constexpr auto STRINGS_FILE{"strings.json"sv};
+inline constexpr auto STRINGS_JA_FILE{"strings.ja.json"sv};
 
 inline constexpr auto MONOSPACE_1_APPLE2_FILE{"font-1-apple2.ttf"sv};
 inline constexpr auto MONOSPACE_1_C64_FILE{"font-1-c64.ttf"sv};

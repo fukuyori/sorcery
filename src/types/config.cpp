@@ -43,8 +43,9 @@ auto Sorcery::Config::get(std::string_view section,
 						  std::string_view value) const -> std::string {
 
 	// Get a value from the config file
-	return _settings->GetValue(CSTR(std::string{section}),
-							   CSTR(std::string{value}));
+	const auto result{_settings->GetValue(CSTR(std::string{section}),
+										  CSTR(std::string{value}), "")};
+	return result != nullptr ? result : "";
 }
 
 bool Sorcery::Config::has_changed() {
@@ -167,7 +168,8 @@ bool Sorcery::Config::save() {
 						BOOL2OPTIONCSTR(_options[MUSIC]));
 
 	// Save current settings to ini file
-	SI_Error result{_settings->SaveFile(CSTR(_cfg_path))};
+	const auto cfg_path{_cfg_path.string()};
+	SI_Error result{_settings->SaveFile(CSTR(cfg_path))};
 	return (result >= 0);
 }
 

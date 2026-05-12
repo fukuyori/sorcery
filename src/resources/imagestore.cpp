@@ -31,7 +31,13 @@
 #pragma GCC diagnostic ignored "-Wswitch-default"
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #define STB_IMAGE_IMPLEMENTATION
+#if __has_include("stb/stb_image.h")
 #include "stb/stb_image.h"
+#elif __has_include("stb_image.h")
+#include "stb_image.h"
+#else
+#error "stb_image.h was not found"
+#endif
 #pragma GCC diagnostic pop
 
 Sorcery::ImageStore::ImageStore(Context &ctx)
@@ -101,7 +107,8 @@ auto Sorcery::ImageStore::_load_image(const std::string file) -> bool {
 
 		// If not loaded, load the image
 		Image image{};
-		_load_texture_from_disc(_ctx.get_file(file).c_str(), &image.texture,
+		const auto file_path{_ctx.get_file(file).string()};
+		_load_texture_from_disc(file_path.c_str(), &image.texture,
 								&image.width, &image.height);
 		_images.try_emplace(file, image);
 		_loaded[file] = true;

@@ -44,6 +44,24 @@
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 // clang-format off
 
+#ifndef IM_VEC2_CLASS_EXTRA
+#define IM_VEC2_CLASS_EXTRA                                                   \
+	template <typename X, typename Y>                                          \
+	constexpr ImVec2(X _x, Y _y)                                               \
+		: x(static_cast<float>(_x)),                                           \
+		  y(static_cast<float>(_y)) {}
+#endif
+
+#ifndef IM_VEC4_CLASS_EXTRA
+#define IM_VEC4_CLASS_EXTRA                                                   \
+	template <typename X, typename Y, typename Z, typename W>                  \
+	constexpr ImVec4(X _x, Y _y, Z _z, W _w)                                   \
+		: x(static_cast<float>(_x)),                                           \
+		  y(static_cast<float>(_y)),                                           \
+		  z(static_cast<float>(_z)),                                           \
+		  w(static_cast<float>(_w)) {}
+#endif
+
 #include "imgui.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_opengl3.h"

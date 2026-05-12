@@ -41,7 +41,7 @@ class Animation {
 		~Animation();
 
 		double lerp;
-		double fade;
+		float fade;
 		unsigned int wp_idx;
 
 		auto refresh_attract() -> void;

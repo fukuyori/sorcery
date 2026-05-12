@@ -2,15 +2,15 @@ add_library(sorcery_core)
 
 target_include_directories(sorcery_core PUBLIC
 	${CMAKE_SOURCE_DIR}/inc
-	${CMAKE_SOURCE_DIR}/ext
+	${SORCERY_THIRD_PARTY_INCLUDE_DIRS}
 )
 
 target_link_libraries(sorcery_core PUBLIC
 	dear_imgui
 	Freetype::Freetype
-	uuid
-	sqlite3
-	${SDL2_LIBRARIES}
+	${SORCERY_SQLITE_TARGET}
+	${SORCERY_UUID_LIBRARIES}
+	${SORCERY_SDL2_TARGETS}
 )
 
 target_sources(sorcery_core PRIVATE

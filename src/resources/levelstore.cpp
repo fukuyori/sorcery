@@ -27,7 +27,7 @@
 #include "core/random.hpp"
 #include "resources/levelstore.hpp"
 #include "types/error.hpp"
-#include <jsoncpp/json/json.h>
+#include "common/json.hpp"
 
 Sorcery::LevelStore::LevelStore() {
 

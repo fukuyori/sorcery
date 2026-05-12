@@ -24,6 +24,16 @@
 
 #include <cstdint>
 
+#ifdef DELETE
+#undef DELETE
+#endif
+#ifdef ERROR
+#undef ERROR
+#endif
+#ifdef NO_ERROR
+#undef NO_ERROR
+#endif
+
 // https://github.com/Neargye/magic_enum/blob/master/doc/limitations.md
 #define MAGIC_ENUM_RANGE_MIN -1
 #define MAGIC_ENUM_RANGE_MAX 255

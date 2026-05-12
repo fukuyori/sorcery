@@ -32,18 +32,40 @@
 #include "resources/levelstore.hpp"
 #include "types/state.hpp"
 
+#include <fstream>
+
+namespace {
+
+auto trace_game(std::string_view message) -> void {
+
+	if (std::getenv("SORCERY_TRACE_STARTUP") != nullptr) {
+		std::cerr << "[game] " << message << std::endl;
+		std::ofstream log{"sorcery-startup.log", std::ios::app};
+		log << "[game] " << message << '\n';
+	}
+}
+
+}
+
 Sorcery::Game::Game(Context &ctx)
 	: _ctx{ctx} {
 
+	trace_game("ctor");
 	if (_ctx.database->has_game()) {
+		trace_game("has game");
 		_clear();
+		trace_game("load game");
 		_load_game();
 	} else {
+		trace_game("create game");
 		_create_game();
+		trace_game("load created game");
 		_load_game();
 	}
 
+	trace_game("events");
 	_set_up_dungeon_events();
+	trace_game("debug keys");
 	_set_up_debug_keys();
 }
 
@@ -304,10 +326,12 @@ auto Sorcery::Game::_clear() -> void {
 }
 
 auto Sorcery::Game::_create_game() -> void {
+	trace_game("_create_game clear");
 	_clear();
 
 	std::stringstream ss;
 	{
+		trace_game("_create_game serialize");
 		cereal::XMLOutputArchive out_archive(ss);
 		state->add_log_message("New Game Started",
 							   Enums::Internal::MessageType::GAME);
@@ -320,6 +344,7 @@ auto Sorcery::Game::_create_game() -> void {
 auto Sorcery::Game::_load_game() -> void {
 
 	// Get Game and State Data
+	trace_game("_load_game db");
 	auto [id, key, status, start_time, last_time, data] =
 		_ctx.database->load_game_state().value();
 	_id = id;
@@ -330,16 +355,35 @@ auto Sorcery::Game::_load_game() -> void {
 	state = std::make_unique<State>();
 	levels = std::make_unique<LevelStore>(_ctx.files->get(MAPS_FILE));
 	if (data.length() > 0) {
+		trace_game("_load_game deserialize state");
 		std::stringstream ss;
 		ss.str(data);
-		{
+		try {
+			constexpr auto max_saved_state_bytes{8U * 1024U * 1024U};
+			if (data.size() > max_saved_state_bytes)
+				throw std::runtime_error{
+					"saved game state is too large to load safely"};
 			cereal::XMLInputArchive in_archive(ss);
 			in_archive(state);
 			state->set(&_ctx);
+		} catch (const std::exception &e) {
+			std::cerr << "Saved game state could not be loaded: " << e.what()
+					  << std::endl;
+			std::cerr << "Starting with a fresh game state." << std::endl;
+			_ctx.database->wipe_data();
+			_create_game();
+			if (const auto fresh_game = _ctx.database->load_game_state()) {
+				_id = fresh_game->id;
+				_key = fresh_game->key;
+				_status = fresh_game->status;
+				_start_time = fresh_game->start_time;
+				_last_time = fresh_game->time_point;
+			}
 		}
 	}
 
 	// And load the associated characters
+	trace_game("_load_game characters");
 	_load_characters();
 }
 
@@ -466,12 +510,14 @@ auto Sorcery::Game::update_character(unsigned int game_id, unsigned int char_id,
 
 auto Sorcery::Game::_load_characters() -> void {
 
+	trace_game("_load_characters ids");
 	_char_ids.clear();
 	_char_ids = _ctx.database->get_character_ids(_id);
 	characters.clear();
 
 	for (auto char_id : _char_ids) {
 
+		trace_game("_load_characters one");
 		const auto data{_ctx.database->get_character(_id, char_id)};
 		std::stringstream ss;
 		ss.str(data);

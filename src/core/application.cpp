@@ -44,7 +44,28 @@
 #include "types/game.hpp"
 #include "types/state.hpp"
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <limits.h>
+#include <unistd.h>
+#endif
+
+#include <filesystem>
 #include <fstream>
+
+namespace {
+
+auto trace_startup(std::string_view message) -> void {
+
+	if (std::getenv("SORCERY_TRACE_STARTUP") != nullptr) {
+		std::cerr << "[startup] " << message << std::endl;
+		std::ofstream log{"sorcery-startup.log", std::ios::app};
+		log << "[startup] " << message << '\n';
+	}
+}
+
+}
 
 // Standard Constructor
 Sorcery::Application::Application(int argc, char **argv) {
@@ -78,11 +99,14 @@ Sorcery::Application::Application(int argc, char **argv) {
 	}
 
 	// And the Context object used for DI
+	trace_startup("context");
 	ctx = Context{};
 	ctx.application = this;
 
 	// Set up all the Core Modules (and populate the DI helper as we go)
+	trace_startup("system");
 	_system = std::make_unique<System>(argc, argv);
+	trace_startup("resources");
 	ctx.system = _system.get();
 	ctx.animation = _system->animation.get();
 	ctx.audio = _system->audio.get();
@@ -92,12 +116,16 @@ Sorcery::Application::Application(int argc, char **argv) {
 	ctx.random = _system->random.get();
 	ctx.strings = _system->strings.get();
 	_resources = std::make_unique<Resources>(ctx);
+	trace_startup("display");
 	ctx.resources = _resources.get();
 	_display = std::make_unique<Display>(ctx);
+	trace_startup("controller");
 	ctx.display = _display.get();
 	_controller = std::make_unique<Controller>(ctx);
+	trace_startup("ui");
 	ctx.controller = _controller.get();
 	_ui = std::make_unique<UI>(ctx);
+	trace_startup("game");
 	ctx.ui = _ui.get();
 	ctx.menubuilder = _ui->menubuilder.get();
 	ctx.components = _ui->components.get();
@@ -105,6 +133,7 @@ Sorcery::Application::Application(int argc, char **argv) {
 	ctx.fonts = _ui->fontstore.get();
 
 	_game = std::make_unique<Game>(ctx);
+	trace_startup("frontend modules");
 	ctx.game = _game.get();
 
 	// Frontend Game Modules
@@ -166,48 +195,60 @@ auto Sorcery::Application::get_resources() const -> Resources * {
 // Start the Game
 auto Sorcery::Application::start() -> int {
 
+	trace_startup("ui start");
 	ctx.ui->start();
 
+	trace_startup("splash start");
 	_splash->start();
+	trace_startup("splash stop");
 	_splash->stop();
 
+	trace_startup("animation start");
 	ctx.animation->refresh_colcyc();
 	ctx.animation->start_colcycl_th();
 	ctx.animation->refresh_wp();
 	ctx.animation->start_wp_th();
 
-	ctx.audio->load(ctx.files->get(MAINMENU_MUSIC));
+	ctx.audio->load(ctx.files->get_path(MAINMENU_MUSIC));
 	ctx.audio->set_volume(0.0f);
 
+	trace_startup("startup plan");
 	const auto plan{_build_startup_plan()};
 	auto flow{_flow_from_startup_plan(plan)};
 
 	while (flow != AppFlow::QUIT && flow != AppFlow::ABORT) {
+		trace_startup("flow loop");
 		switch (flow) {
 		case AppFlow::MAIN_MENU:
+			trace_startup("main menu");
 			flow = _run_main_menu();
 			break;
 
 		case AppFlow::NEW_GAME:
+			trace_startup("new game");
 			_start_new_game(true);
 			flow = AppFlow::TOWN;
 			break;
 
 		case AppFlow::CONTINUE_GAME:
+			trace_startup("continue game");
 			if (ctx.controller->has_saved_game())
 				_load_existing_game();
 			flow = AppFlow::TOWN;
 			break;
 
 		case AppFlow::TOWN:
+			trace_startup("town");
 			flow = _run_town();
 			break;
 
 		case AppFlow::MAZE:
+			trace_startup("maze");
 			flow = _run_maze(EXPEDITION_START);
 			break;
 
 		case AppFlow::RESTART_MAZE:
+			trace_startup("restart maze");
 			flow = _run_restart_maze(EXPEDITION_RESTART);
 			break;
 
@@ -231,7 +272,7 @@ auto Sorcery::Application::start() -> int {
 
 auto Sorcery::Application::_run_town() -> AppFlow {
 
-	ctx.audio->load(ctx.files->get(TOWN_MUSIC));
+	ctx.audio->load(ctx.files->get_path(TOWN_MUSIC));
 	ctx.audio->set_volume(0.0f);
 	ctx.audio->play();
 
@@ -309,7 +350,7 @@ auto Sorcery::Application::_run_maze(const int mode) -> AppFlow {
 
 	ctx.game->enter_maze();
 
-	ctx.audio->load(ctx.files->get(ENGINE_MUSIC));
+	ctx.audio->load(ctx.files->get_path(ENGINE_MUSIC));
 	ctx.audio->set_volume(0.0f);
 	ctx.audio->play();
 
@@ -329,7 +370,7 @@ auto Sorcery::Application::_run_restart_maze(const int mode) -> AppFlow {
 
 	ctx.game->restart_maze(ctx.controller->get_character("restart"));
 
-	ctx.audio->load(ctx.files->get(ENGINE_MUSIC));
+	ctx.audio->load(ctx.files->get_path(ENGINE_MUSIC));
 	ctx.audio->set_volume(0.0f);
 	ctx.audio->play();
 
@@ -409,7 +450,7 @@ auto Sorcery::Application::update() -> void {
 
 auto Sorcery::Application::_run_main_menu() -> AppFlow {
 
-	ctx.audio->load(ctx.files->get(MAINMENU_MUSIC));
+	ctx.audio->load(ctx.files->get_path(MAINMENU_MUSIC));
 	ctx.audio->set_volume(0.0f);
 	ctx.audio->play();
 
@@ -438,7 +479,7 @@ auto Sorcery::Application::_do_restart_expedition(const int mode) -> int {
 
 	ctx.game->restart_maze(ctx.controller->get_character("restart"));
 
-	ctx.audio->load(ctx.files->get(ENGINE_MUSIC));
+	ctx.audio->load(ctx.files->get_path(ENGINE_MUSIC));
 	ctx.audio->set_volume(0.0f);
 
 	auto what{_engine->start(mode)};
@@ -451,7 +492,7 @@ auto Sorcery::Application::_do_restart_expedition(const int mode) -> int {
 auto Sorcery::Application::_do_start_expedition(const int mode) -> int {
 
 	ctx.game->enter_maze();
-	ctx.audio->load(ctx.files->get(ENGINE_MUSIC));
+	ctx.audio->load(ctx.files->get_path(ENGINE_MUSIC));
 	ctx.audio->set_volume(0.0f);
 	auto what{_engine->start(mode)};
 	_engine->stop();
@@ -605,34 +646,43 @@ auto Sorcery::Application::_get_exe_path() const -> std::string_view {
 		char result[PATH_MAX];
 		if (const ssize_t count{readlink("/proc/self/exe", result, PATH_MAX)};
 			count != -1) {
-			const char *path{dirname(result)};
-			std::string_view base_path{path};
+			static std::string base_path;
+			base_path = std::filesystem::path{std::string_view{
+												  result,
+												  static_cast<size_t>(count)}}
+							.parent_path()
+							.string();
 			return base_path;
-		} else
-			return "";
+		} else {
+			static std::string base_path{std::filesystem::current_path().string()};
+			return base_path;
+		}
 	}
 
 #elif _WIN32
 
 	// On Windows
 	{
-		std::vector<wchar_t> pathBuf;
-		unsigned long copied{0};
+		static std::string base_path;
+		std::wstring path;
+		DWORD copied{0};
 		do {
-			pathBuf.resize(pathBuf.size() + MAX_PATH);
-			copied = GetModuleFileName(0, &pathBuf.at(0), pathBuf.size());
-		} while (copied >= pathBuf.size());
+			path.resize(path.size() + MAX_PATH);
+			copied = GetModuleFileNameW(nullptr, path.data(),
+										static_cast<DWORD>(path.size()));
+		} while (copied >= path.size());
 
-		pathBuf.resize(copied);
+		if (copied == 0) {
+			base_path = std::filesystem::current_path().string();
+			return base_path;
+		}
 
-		std::wstring path{pathBuf.begin(), pathBuf.end()};
-		std::string base_path;
-		std::transform(wide.begin(), wide.end(), std::back_inserter(base_path),
-					   [](wchar_t c) {
-						   return (char)c;
-					   });
-
+		path.resize(copied);
+		base_path = std::filesystem::path{path}.parent_path().string();
 		return base_path;
 	}
+#else
+	static std::string base_path{std::filesystem::current_path().string()};
+	return base_path;
 #endif
 }

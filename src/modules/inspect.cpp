@@ -120,7 +120,8 @@ auto Sorcery::Inspect::start(const int mode, const int start_char) -> int {
 
 			const auto p_size{_ctx.game->state->get_party_size()};
 			const int char_id{_ctx.controller->get_character("inspect")};
-			int pos{_ctx.game->state->get_char_slot(char_id).value()};
+			int pos{static_cast<int>(
+				_ctx.game->state->get_char_slot(char_id).value())};
 			if (pos > 1)
 				--pos;
 			else
@@ -132,7 +133,8 @@ auto Sorcery::Inspect::start(const int mode, const int start_char) -> int {
 
 			const auto p_size{_ctx.game->state->get_party_size()};
 			const int char_id{_ctx.controller->get_character("inspect")};
-			int pos{_ctx.game->state->get_char_slot(char_id).value()};
+			int pos{static_cast<int>(
+				_ctx.game->state->get_char_slot(char_id).value())};
 			if (pos == static_cast<int>(p_size))
 				pos = 1;
 			else

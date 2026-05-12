@@ -28,6 +28,7 @@
 #include "common/imgui.hpp"
 #include "common/macro.hpp"
 #include "common/opengl.hpp"
+#include "common/parse.hpp"
 #include "common/sdl2.hpp"
 #include "common/types.hpp"
 #include "core/animation.hpp"
@@ -156,14 +157,14 @@ Sorcery::UI::UI(Context &ctx)
 		_ctx, components->get("engine_base_ui:message_tile"));
 
 	// Window and Display Settings
-	font_sz = std::stoi(_ctx.get_config("Font", "size"));
-	grid_sz = std::stoi(_ctx.get_config("Grid", "size"));
-	columns = std::stoi(_ctx.get_config("Grid", "columns"));
-	rows = std::stoi(_ctx.get_config("Grid", "rows"));
+	font_sz = PARSE_INT(_ctx.get_config("Font", "size"));
+	grid_sz = PARSE_INT(_ctx.get_config("Grid", "size"));
+	columns = PARSE_INT(_ctx.get_config("Grid", "columns"));
+	rows = PARSE_INT(_ctx.get_config("Grid", "rows"));
 	adj_grid_w = grid_sz;
 	adj_grid_h = grid_sz;
-	frame_rd = std::stoi(_ctx.get_config("Frame", "rounding"));
-	ui_rd = std::stoi(_ctx.get_config("UI", "rounding"));
+	frame_rd = PARSE_INT(_ctx.get_config("Frame", "rounding"));
+	ui_rd = PARSE_INT(_ctx.get_config("UI", "rounding"));
 
 	// Render window
 	_render = std::make_unique<Render>(_ctx);
@@ -473,9 +474,11 @@ auto Sorcery::UI::_get_popups() const -> std::string {
 auto Sorcery::UI::start() -> void {
 
 	// Initialise ImGUI to use SDL2/OpenGL
+	static std::string imgui_ini_filename;
 	ImGui::CreateContext();
 	_io = ImGui::GetIO();
-	_io.IniFilename = CSTR(_ctx.get_file(CONFIG_FILE));
+	imgui_ini_filename = _ctx.get_file(CONFIG_FILE).string();
+	_io.IniFilename = imgui_ini_filename.c_str();
 	ImGui::StyleColorsClassic();
 	ImGui_ImplSDL2_InitForOpenGL(_ctx.display->get_SDL_window(),
 								 _ctx.display->get_GL_context());
@@ -501,7 +504,7 @@ auto Sorcery::UI::start() -> void {
 	fontstore->set_current_font(PROPORTIONAL,
 								_ctx.get_config("Font", "proportional"));
 
-	grid_sz = std::stoi(_ctx.get_config("Grid", "size"));
+	grid_sz = PARSE_INT(_ctx.get_config("Grid", "size"));
 
 	// Set the styles
 	ImGuiStyle &style = ImGui::GetStyle();
@@ -958,7 +961,7 @@ auto Sorcery::UI::_draw_tiled_bg(Component *component) -> void {
 
 		const int tiles_per_row{src_image.width / static_cast<int>(TILE_SIZE)};
 
-		const int idx{_ctx.animation->wp_idx};
+		const int idx{static_cast<int>(_ctx.animation->wp_idx)};
 
 		const int tile_x{idx % tiles_per_row};
 		const int tile_y{idx / tiles_per_row};
@@ -2866,7 +2869,7 @@ auto Sorcery::UI::_draw_options() -> void {
 
 			// Save and Cancel Buttons
 			const auto centre{(tabs_width / 2)};
-			const auto button_y{std::stoi(component.get("button_y").value())};
+			const auto button_y{PARSE_INT(component.get("button_y").value())};
 			ImVec2 btn_size{ImGui::GetFontSize() * 7.0f, 0.0f};
 
 			UIStyle::set_faded(_ctx);
@@ -3638,9 +3641,9 @@ auto Sorcery::UI::_draw_attract_mode() -> void {
 
 	// Work out the size and this where to draw it- (as its centred)!
 	auto am_size{_attract_data.size() *
-				 std::stoi(attract.get("tile_width").value())};
+				 PARSE_INT(attract.get("tile_width").value())};
 	am_size += (_attract_data.size() - 1) *
-			   std::stoi(attract.get("tile_spacing").value());
+			   PARSE_INT(attract.get("tile_spacing").value());
 	const auto viewport{ImGui::GetMainViewport()};
 	auto tile_pos{
 		ImVec2{(viewport->Size.x - am_size) / 2, attract.y * adj_grid_h}};
@@ -3668,8 +3671,10 @@ auto Sorcery::UI::draw_frame(const ImVec2 p_min, const ImVec2 p_max,
 
 	// Black Background and Colour Foreground
 	ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, bg);
-	ImGui::GetWindowDrawList()->AddRect(fr_min, fr_max, col, rounding,
-										ImDrawFlags_None, rounding);
+	ImGui::GetWindowDrawList()->AddRect(fr_min, fr_max, col,
+										static_cast<float>(rounding),
+										static_cast<float>(rounding),
+										ImDrawFlags_None);
 }
 
 auto Sorcery::UI::draw_menu(const std::string name, const ImColor sel_color,

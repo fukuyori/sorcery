@@ -30,7 +30,25 @@
 #include <print>
 #include <string>
 #include <string_view>
+
+#ifdef _WIN32
+#include <array>
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <objbase.h>
+#ifdef ERROR
+#undef ERROR
+#endif
+#ifdef DELETE
+#undef DELETE
+#endif
+#else
 #include <uuid/uuid.h>
+#endif
 
 // Enums
 namespace Sorcery {
@@ -47,10 +65,29 @@ constexpr std::underlying_type_t<Enum> unenum(Enum e) noexcept {
 	return static_cast<std::underlying_type_t<Enum>>(e);
 }
 
-// Macro to create a GUID (Linux Only!)
 inline auto GUID() -> std::string {
 
-	// TODO: move to platform.h
+#ifdef _WIN32
+	::GUID guid{};
+	if (CoCreateGuid(&guid) != S_OK)
+		return "";
+
+	std::array<wchar_t, 40> buffer{};
+	const auto length{StringFromGUID2(guid, buffer.data(),
+									  static_cast<int>(buffer.size()))};
+	std::string value;
+	value.reserve(length > 0 ? static_cast<size_t>(length) : 0);
+	for (const auto ch : buffer) {
+		if (ch == L'\0')
+			break;
+		if (ch == L'{' || ch == L'}')
+			continue;
+		value.push_back(static_cast<char>(
+			std::tolower(static_cast<unsigned char>(ch))));
+	}
+
+	return value;
+#else
 	char guid[100];
 	uuid_t uuidObj;
 	uuid_generate(uuidObj);
@@ -58,6 +95,7 @@ inline auto GUID() -> std::string {
 	std::string value{guid};
 
 	return value;
+#endif
 }
 
 inline auto COL2VEC(std::string_view colour) -> ImVec4 {
@@ -152,7 +190,11 @@ inline auto PRINT(const std::string &string) -> void {
 	std::println("{}", string);
 }
 
+#ifdef _MSC_VER
+#define PRINTFUNC std::cout << __FUNCSIG__ << std::endl;
+#else
 #define PRINTFUNC std::cout << __PRETTY_FUNCTION__ << std::endl;
+#endif
 
 inline auto CAPITALISE(const std::string &str) {
 

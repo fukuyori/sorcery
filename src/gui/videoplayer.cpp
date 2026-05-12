@@ -36,7 +36,8 @@ Sorcery::VideoPlayer::VideoPlayer()
 	  _video_stream_index{-1},
 	  _time_base{0.0},
 	  _next_pts_sec{0.0},
-	  _has_frame_ready{false} {}
+	  _has_frame_ready{false},
+	  _decode_failed{false} {}
 
 Sorcery::VideoPlayer::~VideoPlayer() {
 
@@ -97,6 +98,7 @@ auto Sorcery::VideoPlayer::load(const std::string &filename) -> void {
 				 GL_UNSIGNED_BYTE, nullptr);
 
 	_time_base = av_q2d(_format_ctx->streams[_video_stream_index]->time_base);
+	_decode_failed = false;
 }
 
 auto Sorcery::VideoPlayer::free_resources() -> void {
@@ -139,26 +141,32 @@ auto Sorcery::VideoPlayer::free_resources() -> void {
 	_time_base = 0.0;
 	_next_pts_sec = 0.0;
 	_has_frame_ready = false;
+	_decode_failed = false;
 }
 
 auto Sorcery::VideoPlayer::update(double playback_time) -> void {
 
-	if (!_format_ctx || !_codec_ctx)
+	if (_decode_failed || !_format_ctx || !_codec_ctx)
 		return; // nothing loaded
 
 	if (_has_frame_ready && playback_time < _next_pts_sec)
 		return;
 
-	while (true) {
+	constexpr auto max_packets_per_update{256};
+	for (auto packets_read{0}; packets_read < max_packets_per_update;
+		 ++packets_read) {
 		auto ret = av_read_frame(_format_ctx, _packet);
 
 		// --- Reached end of file? Loop back to start ---
 		if (ret < 0) {
 			// Seek back to beginning
-			av_seek_frame(_format_ctx, _video_stream_index, 0,
-						  AVSEEK_FLAG_BACKWARD);
+			if (av_seek_frame(_format_ctx, _video_stream_index, 0,
+							  AVSEEK_FLAG_BACKWARD) < 0) {
+				_decode_failed = true;
+				return;
+			}
 			avcodec_flush_buffers(_codec_ctx);
-			continue; // continue reading from start
+			return;
 		}
 
 		if (_packet->stream_index == _video_stream_index) {

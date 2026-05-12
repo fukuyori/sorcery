@@ -40,6 +40,23 @@ Sorcery::Database::Database(const std::filesystem::path &fp)
 
 		// Attempt to connect to the database to check it is valid
 		sqlite::database database(_fp.string());
+		database << "PRAGMA busy_timeout = 1000;";
+		database <<
+			"CREATE TABLE IF NOT EXISTS game ("
+			"id INTEGER PRIMARY KEY AUTOINCREMENT,"
+			"key TEXT NOT NULL,"
+			"status TEXT NOT NULL,"
+			"started TEXT NOT NULL,"
+			"last_played TEXT NOT NULL,"
+			"data TEXT NOT NULL);";
+		database <<
+			"CREATE TABLE IF NOT EXISTS character ("
+			"id INTEGER PRIMARY KEY AUTOINCREMENT,"
+			"game_id INTEGER NOT NULL,"
+			"created TEXT NOT NULL,"
+			"status TEXT NOT NULL,"
+			"name TEXT NOT NULL,"
+			"data TEXT NOT NULL);";
 		const auto check_SQL{"pragma schema_version"};
 
 		database << check_SQL >> [&](int return_code) {

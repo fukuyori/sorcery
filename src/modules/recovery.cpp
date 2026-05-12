@@ -67,7 +67,7 @@ auto Sorcery::Recovery::_callback_recuperating(std::uint32_t, void *param)
 						   int hp_per_week) -> bool {
 		auto current_hp{character->get_current_hp()};
 		const auto max_hp{character->get_max_hp()};
-		int current_gold{character->get_gold()};
+		int current_gold{static_cast<int>(character->get_gold())};
 		if ((current_hp < max_hp) && (current_gold >= weekly_cost)) {
 			character->set_current_hp(current_hp + hp_per_week);
 			character->set_gold(current_gold - weekly_cost);

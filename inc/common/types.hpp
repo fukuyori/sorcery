@@ -49,6 +49,13 @@ struct Rect {
 			  y{y_},
 			  w{w_},
 			  h{h_} {};
+
+		template <typename X, typename Y, typename W, typename H>
+		Rect(X x_, Y y_, W w_, H h_)
+			: x{static_cast<unsigned int>(x_)},
+			  y{static_cast<unsigned int>(y_)},
+			  w{static_cast<unsigned int>(w_)},
+			  h{static_cast<unsigned int>(h_)} {};
 		Rect(const Rect &other)
 			: x{other.x},
 			  y{other.y},
@@ -89,6 +96,11 @@ struct Coordinate {
 		Coordinate(int x_, int y_)
 			: x{x_},
 			  y{y_} {};
+
+		template <typename X, typename Y>
+		Coordinate(X x_, Y y_)
+			: x{static_cast<int>(x_)},
+			  y{static_cast<int>(y_)} {};
 
 		auto operator==(const Coordinate &a) const -> bool {
 			return (x == a.x && y == a.y);
@@ -138,6 +150,11 @@ struct Size {
 		Size(unsigned int w_, unsigned int h_)
 			: w{w_},
 			  h{h_} {};
+
+		template <typename W, typename H>
+		Size(W w_, H h_)
+			: w{static_cast<unsigned int>(w_)},
+			  h{static_cast<unsigned int>(h_)} {};
 
 		Size(const Size &other)
 			: w{other.w},

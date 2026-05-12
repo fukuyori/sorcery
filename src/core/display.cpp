@@ -21,6 +21,7 @@
 // the resulting work.
 
 #include "core/display.hpp"
+#include "common/parse.hpp"
 #include "common/types.hpp"
 
 #include "core/context.hpp"
@@ -61,10 +62,10 @@ auto Sorcery::Display::initialise_SDL() -> int {
 
 	// Create SDL Window with an Open GL Graphics Context
 	auto window_title{_ctx.get_string("WINDOW_TITLE")};
-	auto window_w{(std::stoi(_ctx.get_config("Window", "width")))};
-	auto window_h{std::stoi(_ctx.get_config("Window", "height"))};
-	auto min_window_w{std::stoi(_ctx.get_config("Window", "min_width"))};
-	auto min_window_h{std::stoi(_ctx.get_config("Window", "min_height"))};
+	auto window_w{PARSE_INT(_ctx.get_config("Window", "width"))};
+	auto window_h{PARSE_INT(_ctx.get_config("Window", "height"))};
+	auto min_window_w{PARSE_INT(_ctx.get_config("Window", "min_width"))};
+	auto min_window_h{PARSE_INT(_ctx.get_config("Window", "min_height"))};
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
@@ -94,7 +95,7 @@ auto Sorcery::Display::get_SDL_window_size() -> Size {
 
 	int w{0}, h{0};
 	SDL_GetWindowSize(_SDL_window, &w, &h);
-	return Size{w, h};
+	return Size{static_cast<unsigned int>(w), static_cast<unsigned int>(h)};
 }
 
 auto Sorcery::Display::get_GL_context() -> SDL_GLContext {

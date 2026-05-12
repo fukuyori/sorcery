@@ -21,7 +21,8 @@
 // the resulting work.
 
 #include "types/level.hpp"
-#include <jsoncpp/json/json.h>
+#include "common/json.hpp"
+#include "common/parse.hpp"
 
 // Default Constructor
 Sorcery::Level::Level() {
@@ -109,8 +110,8 @@ auto Sorcery::Level::wrap_top_right() const -> Coordinate {
 	// having an extra square on top (its 21x21 squares)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnarrowing"
-	return Coordinate{_bottom_left.x + _size.w - 1,
-					  _bottom_left.y + _size.h - 2};
+	return Coordinate{_bottom_left.x + static_cast<int>(_size.w) - 1,
+					  _bottom_left.y + static_cast<int>(_size.h) - 2};
 #pragma GCC diagnostic pop
 }
 
@@ -317,19 +318,19 @@ auto Sorcery::Level::_load_metadata(const Json::Value note_data) -> bool {
 
 				auto data{SPLIT(metadata)};
 				if (data.at(1) == "TELEPORT" && data.at(2) == "TO") {
-					Teleport teleport{std::stoi(data.at(3)),
-									  Coordinate{std::stoi(data.at(4)),
-												 std::stoi(data.at(5))}};
+					Teleport teleport{PARSE_INT(data.at(3)),
+									  Coordinate{PARSE_INT(data.at(4)),
+												 PARSE_INT(data.at(5))}};
 					_tiles.at(Coordinate{x, y}).set_teleport(teleport);
 				} else if (data.at(1) == "CHUTE" && data.at(2) == "TO") {
-					Teleport teleport{std::stoi(data.at(3)),
-									  Coordinate{std::stoi(data.at(4)),
-												 std::stoi(data.at(5))}};
+					Teleport teleport{PARSE_INT(data.at(3)),
+									  Coordinate{PARSE_INT(data.at(4)),
+												 PARSE_INT(data.at(5))}};
 					_tiles.at(Coordinate{x, y}).set_teleport(teleport);
 				} else if (data.at(1) == "STAIRS" && data.at(2) == "TO") {
-					Teleport stairs{std::stoi(data.at(3)),
-									Coordinate{std::stoi(data.at(4)),
-											   std::stoi(data.at(5))}};
+					Teleport stairs{PARSE_INT(data.at(3)),
+									Coordinate{PARSE_INT(data.at(4)),
+											   PARSE_INT(data.at(5))}};
 					_tiles.at(Coordinate{x, y}).set_stairs(stairs);
 				} else if (data.at(1) == "ELEVATOR") {
 					const auto up{data.at(2) == "UP"};
@@ -341,8 +342,8 @@ auto Sorcery::Level::_load_metadata(const Json::Value note_data) -> bool {
 									  up_loc,
 									  down,
 									  down_loc,
-									  std::stoi(data.at(4)),
-									  std::stoi(data.at(5))};
+									  PARSE_INT(data.at(4)),
+									  PARSE_INT(data.at(5))};
 					_tiles.at(Coordinate{x, y}).set_elevator(elevator);
 					if (up)
 						_tiles.at(Coordinate{x, y})

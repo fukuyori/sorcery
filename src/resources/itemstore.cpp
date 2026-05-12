@@ -21,13 +21,14 @@
 // the resulting work.
 
 #include <fstream>
+#include <limits>
 
 #include "common/enum.hpp"
 #include "common/macro.hpp"
 #include "core/context.hpp"
 #include "core/random.hpp"
 #include "resources/itemstore.hpp"
-#include <jsoncpp/json/json.h>
+#include "common/json.hpp"
 
 // Standard Constructor
 Sorcery::ItemStore::ItemStore(Context &ctx,
@@ -78,8 +79,10 @@ auto Sorcery::ItemStore::_load(const std::filesystem::path filename) -> bool {
 					items[i]["unknown name"].asString());
 				const std::string display_name(
 					items[i]["display name"].asString());
+				const auto value64{std::stoull(items[i]["value"].asString())};
 				const auto value{static_cast<unsigned int>(
-					std::stoul(items[i]["value"].asString()))};
+					std::min<unsigned long long>(
+						value64, std::numeric_limits<int>::max()))};
 				const std::string allowed_classes_s{std::invoke([&] {
 					if (items[i].isMember("allowed classes")) {
 						return items[i]["allowed classes"].asString().length() >

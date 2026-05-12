@@ -138,6 +138,7 @@ auto Sorcery::FontStore::_load_font(const std::string &path, float size,
 	config.OversampleH = 3;
 	config.OversampleV = 3;
 	config.PixelSnapH = false;
+	config.GlyphRanges = _io.Fonts->GetGlyphRangesJapanese();
 
 	ImFont *font{_io.Fonts->AddFontFromFileTTF(path.c_str(), size, &config)};
 	if (!font) {

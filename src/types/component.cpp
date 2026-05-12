@@ -22,6 +22,7 @@
 
 #include <format>
 
+#include "common/parse.hpp"
 #include "types/component.hpp"
 
 Sorcery::Component::Component()
@@ -158,7 +159,7 @@ auto Sorcery::Component::get_int(std::string_view key, int fallback) const
 	-> int {
 
 	if (_get(key))
-		return std::stoi(_get(key).value());
+		return PARSE_INT(_get(key).value());
 	else
 		return fallback;
 }

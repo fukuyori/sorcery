@@ -22,6 +22,7 @@
 
 #include <regex>
 
+#include "common/parse.hpp"
 #include "types/dice.hpp"
 
 std::random_device Sorcery::Dice::_device;
@@ -44,10 +45,10 @@ Sorcery::Dice::Dice(const std::string dice_) {
 	if (dice_.length() > 0) {
 		const std::regex regex(R"(^(\d+)d(\d+)[+-]?(\d*)$)");
 		if (std::smatch match; std::regex_search(dice_, match, regex)) {
-			num = std::stoi(match[1]);
-			dice = std::stoi(match[2]);
+			num = PARSE_UINT(match[1].str());
+			dice = PARSE_UINT(match[2].str());
 			if (match[3].length() > 0)
-				mod = std::stoi(match[3]);
+				mod = PARSE_INT(match[3].str());
 			else
 				mod = 0;
 			if (dice_.contains('-'))

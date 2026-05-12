@@ -2,14 +2,14 @@ add_library(sorcery_types)
 
 target_include_directories(sorcery_types PUBLIC
 	${CMAKE_SOURCE_DIR}/inc
-	${CMAKE_SOURCE_DIR}/ext
+	${SORCERY_THIRD_PARTY_INCLUDE_DIRS}
 )
 
 target_link_libraries(sorcery_types PUBLIC
 	dear_imgui
-	jsoncpp
-	dl
-	${SDL2_LIBRARIES}
+	${SORCERY_JSONCPP_TARGET}
+	${SORCERY_PLATFORM_LIBRARIES}
+	${SORCERY_SDL2_TARGETS}
 )
 
 target_sources(sorcery_types PRIVATE

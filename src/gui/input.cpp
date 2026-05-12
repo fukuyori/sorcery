@@ -25,6 +25,7 @@
 #include "core/context.hpp"
 #include "core/controller.hpp"
 #include "core/macro.hpp"
+#include "common/parse.hpp"
 #include "core/system.hpp"
 #include "core/ui.hpp"
 #include "gui/dialog.hpp"
@@ -47,7 +48,7 @@ Sorcery::Input::Input(Context &ctx, Component &component)
 	_font = _component.font;
 	_title = _ctx.get_string(_component.string_key);
 	_input = "";
-	_input_width = std::stoi(_component.get("input_width").value());
+	_input_width = PARSE_INT(_component.get("input_width").value());
 	_game = nullptr;
 	_name = _component.name;
 }
@@ -149,7 +150,7 @@ auto Sorcery::Input::display([[maybe_unused]] bool &is_yes) -> void {
 
 					auto &character{_game->characters.at(
 						_ctx.controller->get_character("tithe"))};
-					const unsigned int amount{std::stoi(_input)};
+					const unsigned int amount{PARSE_UINT(_input)};
 					if (amount > character.get_gold()) {
 
 						// Too much!

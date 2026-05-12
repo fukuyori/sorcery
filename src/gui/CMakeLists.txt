@@ -2,13 +2,13 @@ add_library(sorcery_gui)
 
 target_include_directories(sorcery_gui PUBLIC
 	${CMAKE_SOURCE_DIR}/inc
-	${CMAKE_SOURCE_DIR}/ext
+	${SORCERY_THIRD_PARTY_INCLUDE_DIRS}
 )
 
 target_link_libraries(sorcery_gui PUBLIC
 	dear_imgui
 	Freetype::Freetype
-	${SDL2_LIBRARIES}
+	${SORCERY_SDL2_TARGETS}
 )
 
 target_sources(sorcery_gui PRIVATE

@@ -29,10 +29,6 @@
 #include <filesystem>
 #include <map>
 
-#include <libgen.h>
-#include <limits.h>
-#include <unistd.h>
-
 namespace Sorcery {
 class FileStore {
 
@@ -47,7 +43,7 @@ class FileStore {
 	private:
 		auto _add_path(const std::string_view dir, const std::string_view file)
 			-> void;
-		auto _get_exe_path() const -> std::string_view;
+		auto _get_exe_path() const -> std::filesystem::path;
 
 		std::map<std::string_view, std::filesystem::path> _file_paths;
 		std::filesystem::path _base_path;

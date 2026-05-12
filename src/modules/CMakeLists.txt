@@ -2,12 +2,12 @@ add_library(sorcery_modules)
 
 target_include_directories(sorcery_modules PUBLIC
 	${CMAKE_SOURCE_DIR}/inc
-	${CMAKE_SOURCE_DIR}/ext
+	${SORCERY_THIRD_PARTY_INCLUDE_DIRS}
 )
 
 target_link_libraries(sorcery_modules PUBLIC
 	dear_imgui
-	${SDL2_LIBRARIES}
+	${SORCERY_SDL2_TARGETS}
 )
 
 target_sources(sorcery_modules PRIVATE

@@ -1,0 +1,23 @@
+{
+  "name": "sorcery",
+  "version-string": "0.1.0",
+  "dependencies": [
+    {
+      "name": "ffmpeg",
+      "features": [
+        "avcodec",
+        "avformat",
+        "swresample",
+        "swscale"
+      ]
+    },
+    "freetype",
+    "glew",
+    "jsoncpp",
+    "pkgconf",
+    "sdl2",
+    "sdl2-image",
+    "stb",
+    "sqlite3"
+  ]
+}

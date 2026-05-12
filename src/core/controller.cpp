@@ -58,7 +58,7 @@ auto Sorcery::Controller::initialise() -> void {
 	_has_save = _ctx.database->has_game();
 
 	_abort = false;
-	_leave = false;
+	_leave_game = false;
 
 	// Store these flags (if set)
 	auto show_automap{_flags["interface_automap"]};
@@ -867,12 +867,12 @@ auto Sorcery::Controller::want_to_abort() const -> bool {
 
 auto Sorcery::Controller::leave_game(const bool value) -> void {
 
-	_leave = value;
+	_leave_game = value;
 }
 
 auto Sorcery::Controller::want_to_leave_game() -> bool & {
 
-	return _leave;
+	return _leave_game;
 }
 
 auto Sorcery::Controller::get_input_buffer() -> std::string & {

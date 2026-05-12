@@ -25,10 +25,11 @@
 
 #include "common/enum.hpp"
 #include "common/macro.hpp"
+#include "common/parse.hpp"
 #include "resources/define.hpp"
 #include "resources/monsterstore.hpp"
 #include "types/monstertype.hpp"
-#include <jsoncpp/json/json.h>
+#include "common/json.hpp"
 
 // Standard Constructor
 Sorcery::MonsterStore::MonsterStore(const std::filesystem::path filename) {
@@ -296,7 +297,7 @@ auto Sorcery::MonsterStore::_parse_level_drain(const std::string value) const
 	if (value.contains("Level Drain")) {
 		std::string output{std::regex_replace(
 			value, std::regex("[^0-9]*([0-9]+).*"), std::string("$1"))};
-		return std::stoi(output);
+	return PARSE_INT(output);
 	} else
 		return 0;
 }
@@ -309,7 +310,7 @@ auto Sorcery::MonsterStore::_parse_regen(const std::string value) const
 		auto heal_portion{value.substr(pos)};
 		std::string output{std::regex_replace(
 			heal_portion, std::regex("[^0-9]*([0-9]+).*"), std::string("$1"))};
-		return std::stoi(output);
+	return PARSE_INT(output);
 	} else
 		return 0;
 }

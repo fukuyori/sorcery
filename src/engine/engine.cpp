@@ -21,6 +21,7 @@
 // the resulting work.
 
 #include "engine/engine.hpp"
+#include "common/parse.hpp"
 #include "common/sdl2.hpp"
 #include "core/application.hpp"
 #include "core/audioplayer.hpp"
@@ -276,12 +277,12 @@ auto Sorcery::Engine::_start_expedition(const int mode) -> void {
 	if (mode & EXPEDITION_GOTO) {
 		// Check we have an override to go to a specific placein the maze
 		const auto goto_depth{
-			std::stoi(_ctx.get_config("Debug", "quick_start_depth"))};
+			PARSE_INT(_ctx.get_config("Debug", "quick_start_depth"))};
 		const auto goto_loc{
-			Coordinate{std::stoi(_ctx.get_config("Debug", "quick_start_x")),
-					   std::stoi(_ctx.get_config("Debug", "quick_start_y"))}};
+			Coordinate{PARSE_INT(_ctx.get_config("Debug", "quick_start_x")),
+					   PARSE_INT(_ctx.get_config("Debug", "quick_start_y"))}};
 		const auto goto_dir{static_cast<Enums::Map::Direction>(
-			std::stoi(_ctx.get_config("Debug", "quick_start_dir")))};
+			PARSE_INT(_ctx.get_config("Debug", "quick_start_dir")))};
 
 		_go_to_location(goto_depth, goto_loc, goto_dir);
 

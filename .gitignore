@@ -36,8 +36,12 @@ collateral
 # Binaries
 bin/*
 build/*
+build-*/
 obj/*
 .debris/*
+dat/save.db3
+*.db3-journal
+sorcery-startup.log
 
 # Temporary Files
 *.swp

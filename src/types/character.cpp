@@ -1605,9 +1605,11 @@ auto Sorcery::Character::_calculate_sp(Enums::Magic::SpellType spell_type,
 	for (auto spell_level = 1; spell_level <= 7; spell_level++) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnarrowing"
-		int spell_count{_abilities[Enums::Character::Ability::CURRENT_LEVEL] -
-						level_mod + level_offset -
-						(level_offset * spell_level)};
+		int spell_count{
+			static_cast<int>(
+				_abilities[Enums::Character::Ability::CURRENT_LEVEL]) -
+			static_cast<int>(level_mod) + static_cast<int>(level_offset) -
+			(static_cast<int>(level_offset) * spell_level)};
 #pragma GCC diagnostic pop
 		spell_count = std::max(0, std::min(spell_count, 9));
 		(*spells)[spell_level] = spell_count;

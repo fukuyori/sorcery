@@ -33,29 +33,65 @@
 #include "resources/stringstore.hpp"
 #include "types/config.hpp"
 
-Sorcery::System::System(int argc __attribute__((unused)),
-						char **argv __attribute__((unused))) {
+#include <algorithm>
+#include <cctype>
+#include <fstream>
+
+namespace {
+
+auto trace_system(std::string_view message) -> void {
+
+	if (std::getenv("SORCERY_TRACE_STARTUP") != nullptr) {
+		std::cerr << "[system] " << message << std::endl;
+		std::ofstream log{"sorcery-startup.log", std::ios::app};
+		log << "[system] " << message << '\n';
+	}
+}
+
+}
+
+Sorcery::System::System([[maybe_unused]] int argc,
+						[[maybe_unused]] char **argv) {
 
 	// Initialise SDL Audio first as it's a dependency of AudioPlayer, but we
 	// initialise the video subsystem in Display as it's not needed until then
+	trace_system("SDL_Init audio");
 	if (SDL_Init(SDL_INIT_AUDIO) != 0) {
 		std::println("Error: {}", SDL_GetError());
 	} else {
 
 		// Modules
+		trace_system("filestore");
 		files = std::make_unique<FileStore>();
-		strings = std::make_unique<StringStore>(files->get(STRINGS_FILE));
 
+		trace_system("config ini");
 		_settings = std::make_unique<CSimpleIniA>();
 		_settings->SetUnicode();
-		_settings->LoadFile(CSTR(files->get(CONFIG_FILE)));
+		_settings->LoadFile(CSTR(files->get_path(CONFIG_FILE)));
 
+		trace_system("config");
 		config =
 			std::make_unique<Config>(_settings.get(), files->get(CONFIG_FILE));
+		trace_system("strings");
+		strings = std::make_unique<StringStore>(files->get_path(STRINGS_FILE));
+
+		auto language{config->get("Localization", "language")};
+		std::ranges::transform(language.begin(), language.end(),
+							   language.begin(), [](unsigned char c) {
+								   return std::tolower(c);
+							   });
+		if (language == "ja" || language == "ja-jp")
+			strings->load_overlay(files->get_path(STRINGS_JA_FILE));
+
+		trace_system("random");
 		random = std::make_unique<Random>();
+		trace_system("animation");
 		animation = std::make_unique<Animation>(random.get());
-		db = std::make_unique<Database>(CSTR(files->get(DATABASE_FILE)));
+		trace_system("database");
+		db = std::make_unique<Database>(CSTR(files->get_path(DATABASE_FILE)));
+		trace_system("audio player");
 		audio = std::make_unique<AudioPlayer>();
+		trace_system("done");
 	}
 }
 

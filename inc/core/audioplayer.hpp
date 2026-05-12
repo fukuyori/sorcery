@@ -64,6 +64,7 @@ class AudioPlayer {
 		std::vector<uint8_t> _buffer;
 
 		bool _playing = false;
+		bool _decode_failed = false;
 
 		float _volume = 0.0f;
 };

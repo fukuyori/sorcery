@@ -169,7 +169,7 @@ class Controller {
 		bool _fullscreen; // Fullscreen mode active
 		bool _can_undo;	  // Can "undo" a movement action
 		bool _abort;
-		bool _leave;
+		bool _leave_game;
 		std::vector<unsigned int> _candidate_party; // Used for Reordering
 		Enums::Map::Event _last_event;				// Last event in dungeon
 		Enums::Map::Direction _last_dir;			// Last movement in dungeon

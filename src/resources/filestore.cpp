@@ -23,9 +23,15 @@
 #include "resources/filestore.hpp"
 #include "common/define.hpp"
 #include "resources/define.hpp"
-#include <libgen.h>
+
+#include <cstdlib>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <limits.h>
 #include <unistd.h>
+#endif
 
 Sorcery::FileStore::FileStore() {
 
@@ -34,7 +40,16 @@ Sorcery::FileStore::FileStore() {
 	_file_paths.clear();
 
 	_add_path(CONFIG_DIR, CONFIG_FILE);
+#ifdef _WIN32
+	if (const auto *appdata = std::getenv("APPDATA"); appdata != nullptr) {
+		const auto save_dir{std::filesystem::path{appdata} / "Sorcery"};
+		std::filesystem::create_directories(save_dir);
+		_file_paths[DATABASE_FILE] = save_dir / DATABASE_FILE;
+	} else
+		_add_path(DATA_DIR, DATABASE_FILE);
+#else
 	_add_path(DATA_DIR, DATABASE_FILE);
+#endif
 	_add_path(DATA_DIR, ITEMS_FILE);
 	_add_path(DATA_DIR, LAYOUT_FILE);
 	_add_path(DATA_DIR, MAPS_FILE);
@@ -48,6 +63,7 @@ Sorcery::FileStore::FileStore() {
 	_add_path(DATA_DIR, MONSTERS_FILE);
 	_add_path(DATA_DIR, PROPORTIONAL_FONT_FILE);
 	_add_path(DATA_DIR, STRINGS_FILE);
+	_add_path(DATA_DIR, STRINGS_JA_FILE);
 	_add_path(DATA_DIR, TEXT_FONT_FILE);
 	_add_path(DOCUMENTS_DIR, LICENSE_FILE);
 	_add_path(GFX_DIR, BACKGROUND_MAIN_MENU_TEXTURE);
@@ -91,7 +107,7 @@ auto Sorcery::FileStore::_add_path(const std::string_view dir,
 	_file_paths[file] = file_path;
 }
 
-auto Sorcery::FileStore::_get_exe_path() const -> std::string_view {
+auto Sorcery::FileStore::_get_exe_path() const -> std::filesystem::path {
 
 #ifdef __linux__
 
@@ -100,34 +116,33 @@ auto Sorcery::FileStore::_get_exe_path() const -> std::string_view {
 		char result[PATH_MAX];
 		if (const ssize_t count{readlink("/proc/self/exe", result, PATH_MAX)};
 			count != -1) {
-			const char *path{dirname(result)};
-			std::string_view base_path{path};
-			return base_path;
+			return std::filesystem::path{std::string_view{result,
+														  static_cast<size_t>(
+															  count)}}
+				.parent_path();
 		} else
-			return "";
+			return std::filesystem::current_path();
 	}
 
 #elif _WIN32
 
 	// On Windows
 	{
-		std::vector<wchar_t> pathBuf;
-		unsigned long copied{0};
+		std::wstring path;
+		DWORD copied{0};
 		do {
-			pathBuf.resize(pathBuf.size() + MAX_PATH);
-			copied = GetModuleFileName(0, &pathBuf.at(0), pathBuf.size());
-		} while (copied >= pathBuf.size());
+			path.resize(path.size() + MAX_PATH);
+			copied = GetModuleFileNameW(nullptr, path.data(),
+										static_cast<DWORD>(path.size()));
+		} while (copied >= path.size());
 
-		pathBuf.resize(copied);
+		if (copied == 0)
+			return std::filesystem::current_path();
 
-		std::wstring path{pathBuf.begin(), pathBuf.end()};
-		std::string base_path;
-		std::transform(wide.begin(), wide.end(), std::back_inserter(base_path),
-					   [](wchar_t c) {
-						   return (char)c;
-					   });
-
-		return base_path;
+		path.resize(copied);
+		return std::filesystem::path{path}.parent_path();
 	}
+#else
+	return std::filesystem::current_path();
 #endif
 }

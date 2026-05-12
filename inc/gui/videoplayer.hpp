@@ -66,5 +66,6 @@ class VideoPlayer {
 		double _time_base;
 		double _next_pts_sec;
 		bool _has_frame_ready;
+		bool _decode_failed;
 };
 };
