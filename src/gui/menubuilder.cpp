@@ -389,7 +389,7 @@ auto Sorcery::MenuBuilder::_load_fixed_menu(const std::string &menu_name,
 		return;
 
 	for (const auto &key : it->second) {
-		items.emplace_back(std::format("{:^{}}", _ctx.get_string(key), width));
+		items.emplace_back(_ctx.get_string(key));
 	}
 }
 

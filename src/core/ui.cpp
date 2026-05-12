@@ -1323,7 +1323,8 @@ auto Sorcery::UI::_draw_character_detailed(Component *component,
 	ImVec2 pos{};
 	pos = ImVec2{left_col * adj_grid_w, component->y * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>14} {:>2}", "Strength",
+	ImGui::TextUnformatted(std::format("{:>14} {:>2}",
+									   _ctx.get_string("CHARACTER_STRENGTH"),
 									   character->get_cur_attr(STRENGTH))
 							   .c_str());
 
@@ -1331,37 +1332,39 @@ auto Sorcery::UI::_draw_character_detailed(Component *component,
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:+>2}", "Atk Mod",
+		std::format("{:>14} {:+>2}", _ctx.get_string("CHARACTER_AM"),
 					character->abilities().at(ATTACK_MODIFIER))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:+>2}", "Hit Prob",
+		std::format("{:>14} {:+>2}", _ctx.get_string("CHARACTER_HP"),
 					character->abilities().at(HIT_PROBABILITY))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>14} {:+>2}", "Bonus Damg",
+	ImGui::TextUnformatted(std::format("{:>14} {:+>2}",
+									   _ctx.get_string("CHARACTER_BD"),
 									   character->abilities().at(BONUS_DAMAGE))
 							   .c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}", "Num Attacks",
+		std::format("{:>14} {:>2}", _ctx.get_string("CHARACTER_NA"),
 					character->abilities().at(BASE_NUMBER_OF_ATTACKS))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}", "Unarmed Damg",
+		std::format("{:>14} {:>2}", _ctx.get_string("CHARACTER_MU"),
 					character->abilities().at(UNARMED_DAMAGE))
 			.c_str());
 
 	UIStyle::set_text_bright(_ctx);
 	pos.y += (adj_grid_h * 2);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>14} {:>2}", "Vitality",
+	ImGui::TextUnformatted(std::format("{:>14} {:>2}",
+									   _ctx.get_string("CHARACTER_VITALITY"),
 									   character->get_cur_attr(VITALITY))
 							   .c_str());
 
@@ -1369,63 +1372,65 @@ auto Sorcery::UI::_draw_character_detailed(Component *component,
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:+>2}", "Vit Bonus",
+		std::format("{:>14} {:+>2}", _ctx.get_string("CHARACTER_VB"),
 					character->abilities().at(VITALITY_BONUS))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:+>2}", "Bonus HP",
+		std::format("{:>14} {:+>2}", _ctx.get_string("CHARACTER_BH"),
 					character->abilities().at(BONUS_HIT_POINTS))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "Ress / Dead",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_RD"),
 					character->abilities().at(DEAD_RESURRECT))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "Ress / Ashes",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_RA"),
 					character->abilities().at(ASHES_RESURRECT))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "Ress / Spell",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_RE"),
 					character->abilities().at(DI_KADORTO_RESURRECT))
 			.c_str());
 
 	pos = ImVec2{right_col * adj_grid_w, component->y * adj_grid_h};
 	ImGui::SetCursorPos(pos);
 	UIStyle::set_text_bright(_ctx);
-	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}", "I.Q.", character->get_cur_attr(IQ))
-			.c_str());
+	ImGui::TextUnformatted(std::format("{:>14} {:>2}",
+									   _ctx.get_string("CHARACTER_IQ"),
+									   character->get_cur_attr(IQ))
+							   .c_str());
 
 	UIStyle::set_text_dark(_ctx);
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "Spell Learn",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_SP"),
 					character->abilities().at(MAGE_SPELL_LEARN))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "ID Items",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_II"),
 					character->abilities().at(IDENTIFY_ITEMS))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "ID Curse",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_IC"),
 					character->abilities().at(IDENTIFY_CURSE))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>14} {:>2}%", "ID Foes",
+	ImGui::TextUnformatted(std::format("{:>14} {:>2}%",
+									   _ctx.get_string("CHARACTER_IF"),
 									   character->abilities().at(IDENTIFY_FOES))
 							   .c_str());
 
@@ -1433,43 +1438,45 @@ auto Sorcery::UI::_draw_character_detailed(Component *component,
 	pos.y += (adj_grid_h * 2);
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}", "Agility", character->get_cur_attr(AGILITY))
+		std::format("{:>14} {:>2}", _ctx.get_string("CHARACTER_AGILITY"),
+					character->get_cur_attr(AGILITY))
 			.c_str());
 
 	UIStyle::set_text_dark(_ctx);
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:+>2}", "Int Mod",
+		std::format("{:>14} {:+>2}", _ctx.get_string("CHARACTER_IM"),
 					character->abilities().at(INITIATIVE_MODIFIER))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "Crit Hit",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_CH"),
 					character->abilities().at(BASE_CRITICAL_HIT))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>14} {:>2}%", "ID Trap",
+	ImGui::TextUnformatted(std::format("{:>14} {:>2}%",
+									   _ctx.get_string("CHARACTER_IT"),
 									   character->abilities().at(IDENTIFY_TRAP))
 							   .c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "Disarm Trap",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_DT"),
 					character->abilities().at(BASE_DISARM_TRAP))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "Avoid Trap",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_AT"),
 					100 - character->abilities().at(ACTIVATE_TRAP))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "Avoid Pit",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_AP"),
 					character->abilities().at(BASE_AVOID_PIT))
 			.c_str());
 }
@@ -1589,35 +1596,38 @@ auto Sorcery::UI::_draw_character_detailed_again(Component *component,
 	UIStyle::set_text_bright(_ctx);
 	ImVec2 pos{left_col * adj_grid_w, component->y * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}", "Piety", character->get_cur_attr(PIETY))
-			.c_str());
+	ImGui::TextUnformatted(std::format("{:>14} {:>2}",
+									   _ctx.get_string("CHARACTER_PIETY"),
+									   character->get_cur_attr(PIETY))
+							   .c_str());
 
 	UIStyle::set_text_dark(_ctx);
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "Spell Learn",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_SM"),
 					character->abilities().at(PRIEST_SPELL_LEARN))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "Rec Chance",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_RS"),
 					character->abilities().at(LOKTOFELT_SUCCESS))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>14} {:>2}%", "Base Dispell",
+	ImGui::TextUnformatted(std::format("{:>14} {:>2}%",
+									   _ctx.get_string("CHARACTER_BS"),
 									   character->abilities().at(BASE_DISPELL))
 							   .c_str());
 
 	UIStyle::set_text_bright(_ctx);
 	pos.y += (adj_grid_h * 2);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}", "Luck", character->get_cur_attr(LUCK))
-			.c_str());
+	ImGui::TextUnformatted(std::format("{:>14} {:>2}",
+									   _ctx.get_string("CHARACTER_LUCK"),
+									   character->get_cur_attr(LUCK))
+							   .c_str());
 	UIStyle::set_text_dark(_ctx);
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
@@ -1628,90 +1638,92 @@ auto Sorcery::UI::_draw_character_detailed_again(Component *component,
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "Wipe Rec",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_WI"),
 					character->abilities().at(EQUIPMENT_INTACT_ON_WIPE))
 			.c_str());
 
 	pos = ImVec2{right_col * adj_grid_w, component->y * adj_grid_h};
 	ImGui::SetCursorPos(pos);
 	UIStyle::set_text_bright(_ctx);
-	ImGui::TextUnformatted(std::format("{:>14}", "Resistances").c_str());
+	ImGui::TextUnformatted(
+		std::format("{:>14}", _ctx.get_string("CHARACTER_RESISTANCES"))
+			.c_str());
 
 	UIStyle::set_text_dark(_ctx);
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "vs Crit Hit",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_RC"),
 					character->abilities().at(RESISTANCE_VS_CRITICAL_HIT) * 5)
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "vs Pois / Para",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_PP"),
 					character->abilities().at(RESISTANCE_VS_POISON_PARALYSIS) *
 						5)
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "vs Stoning",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_ST"),
 					character->abilities().at(RESISTANCE_VS_STONING) * 5)
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "vs Breath",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_BA"),
 					character->abilities().at(RESISTANCE_VS_BREATH_ATTACKS) * 5)
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "vs Gas Trap",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_PG"),
 					character->abilities().at(RESISTANCE_VS_POISON_GAS_TRAP) *
 						5)
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "vs Spell Trap",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_MT"),
 					character->abilities().at(RESISTANCE_VS_MAGE_PRIEST_TRAP) *
 						5)
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "vs Silence",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_SI"),
 					character->abilities().at(RESISTANCE_VS_SILENCE) * 5)
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "vs Sleep",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_SE"),
 					character->abilities().at(RESISTANCE_VS_KATINO))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "vs Death",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_DE"),
 					character->abilities().at(RESISTANCE_VS_BADI))
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "vs Statue",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_SU"),
 					character->abilities().at(RESISTANCE_VS_MANIFO))
 			.c_str());
 
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "Rec / Sleep",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_SL"),
 					character->abilities().at(RECOVER_FROM_SLEEP) * 5)
 			.c_str());
 	pos.y += adj_grid_h;
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:>14} {:>2}%", "Rec / Fear",
+		std::format("{:>14} {:>2}%", _ctx.get_string("CHARACTER_RF"),
 					character->abilities().at(RECOVER_FROM_FEAR) * 5)
 			.c_str());
 }
@@ -1729,34 +1741,40 @@ auto Sorcery::UI::_draw_character_summary(Component *component,
 	ImVec2 pos{};
 	pos = ImVec2{left_col * adj_grid_w, component->y * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>8} {:>2}", "Strength",
+	ImGui::TextUnformatted(std::format("{:>8} {:>2}",
+									   _ctx.get_string("CHARACTER_STRENGTH"),
 									   character->get_cur_attr(STRENGTH))
 							   .c_str());
 	pos = ImVec2{left_col * adj_grid_w, (component->y + 1) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format("{:>8} {:>2}", "I.Q.", character->get_cur_attr(IQ))
-			.c_str());
+	ImGui::TextUnformatted(std::format("{:>8} {:>2}",
+									   _ctx.get_string("CHARACTER_IQ"),
+									   character->get_cur_attr(IQ))
+							   .c_str());
 	pos = ImVec2{left_col * adj_grid_w, (component->y + 2) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format("{:>8} {:>2}", "Piety", character->get_cur_attr(PIETY))
-			.c_str());
+	ImGui::TextUnformatted(std::format("{:>8} {:>2}",
+									   _ctx.get_string("CHARACTER_PIETY"),
+									   character->get_cur_attr(PIETY))
+							   .c_str());
 	pos = ImVec2{left_col * adj_grid_w, (component->y + 3) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>8} {:>2}", "Vitality",
+	ImGui::TextUnformatted(std::format("{:>8} {:>2}",
+									   _ctx.get_string("CHARACTER_VITALITY"),
 									   character->get_cur_attr(VITALITY))
 							   .c_str());
 	pos = ImVec2{left_col * adj_grid_w, (component->y + 4) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format("{:>8} {:>2}", "Agility", character->get_cur_attr(AGILITY))
-			.c_str());
+	ImGui::TextUnformatted(std::format("{:>8} {:>2}",
+									   _ctx.get_string("CHARACTER_AGILITY"),
+									   character->get_cur_attr(AGILITY))
+							   .c_str());
 	pos = ImVec2{left_col * adj_grid_w, (component->y + 5) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format("{:>8} {:>2}", "Luck", character->get_cur_attr(LUCK))
-			.c_str());
+	ImGui::TextUnformatted(std::format("{:>8} {:>2}",
+									   _ctx.get_string("CHARACTER_LUCK"),
+									   character->get_cur_attr(LUCK))
+							   .c_str());
 
 	pos = ImVec2{left_col * adj_grid_w, (component->y + 7) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
@@ -1765,36 +1783,46 @@ auto Sorcery::UI::_draw_character_summary(Component *component,
 		character->mage_cur_sp().at(2), character->mage_cur_sp().at(3),
 		character->mage_cur_sp().at(4), character->mage_cur_sp().at(5),
 		character->mage_cur_sp().at(6), character->mage_cur_sp().at(7))};
-	ImGui::TextUnformatted(std::format("Mage {}", mage).c_str());
+	ImGui::TextUnformatted(
+		std::format("{} {}", _ctx.get_string("CHARACTER_MAGE"), mage).c_str());
 
 	pos = ImVec2{middle_col * adj_grid_w, component->y * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format("{:<6} {:>10}", "Gold", character->get_gold()).c_str());
+	ImGui::TextUnformatted(std::format("{:<6} {:>10}",
+									   _ctx.get_string("CHARACTER_GO"),
+									   character->get_gold())
+							   .c_str());
 	pos = ImVec2{middle_col * adj_grid_w, (component->y + 1) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format("{:<6} {:>10}", "E.P.", character->get_cur_xp()).c_str());
+	ImGui::TextUnformatted(std::format("{:<6} {:>10}",
+									   _ctx.get_string("CHARACTER_XP"),
+									   character->get_cur_xp())
+							   .c_str());
 	pos = ImVec2{middle_col * adj_grid_w, (component->y + 2) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format("{:<6} {:>10}", "Next", character->get_next_xp()).c_str());
+	ImGui::TextUnformatted(std::format("{:<6} {:>10}",
+									   _ctx.get_string("CHARACTER_NX"),
+									   character->get_next_xp())
+							   .c_str());
 	pos = ImVec2{middle_col * adj_grid_w, (component->y + 3) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format("{:<6} {:>10}", "Marks", character->abilities().at(MARKS))
-			.c_str());
+	ImGui::TextUnformatted(std::format("{:<6} {:>10}",
+									   _ctx.get_string("CHARACTER_MK"),
+									   character->abilities().at(MARKS))
+							   .c_str());
 	pos = ImVec2{middle_col * adj_grid_w, (component->y + 4) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:<4} {}/{}", "H.P.",
+	ImGui::TextUnformatted(std::format("{:<4} {}/{}",
+									   _ctx.get_string("CHARACTER_HS"),
 									   character->abilities().at(CURRENT_HP),
 									   character->abilities().at(MAX_HP))
 							   .c_str());
 	pos = ImVec2{middle_col * adj_grid_w, (component->y + 5) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format("{:<6} {:>18}", "Status", character->get_status_string())
-			.c_str());
+	ImGui::TextUnformatted(std::format("{:<6} {:>18}",
+									   _ctx.get_string("CHARACTER_SS"),
+									   character->get_status_string())
+							   .c_str());
 
 	auto priest{std::format(
 		"{}/{}/{}/{}/{}/{}/{}", character->priest_cur_sp().at(1),
@@ -1804,20 +1832,28 @@ auto Sorcery::UI::_draw_character_summary(Component *component,
 	pos = ImVec2{(component->x + 20) * adj_grid_w,
 				 (component->y + 7) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("Prst {}", priest).c_str());
+	ImGui::TextUnformatted(
+		std::format("{} {}", _ctx.get_string("CHARACTER_PRIEST"), priest)
+			.c_str());
 
 	pos = ImVec2{right_col * adj_grid_w, component->y * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format("Swim{:>3}", character->abilities().at(SWIM)).c_str());
+	ImGui::TextUnformatted(std::format("{:<4}{:>3}",
+									   _ctx.get_string("CHARACTER_SW"),
+									   character->abilities().at(SWIM))
+							   .c_str());
 	pos = ImVec2{right_col * adj_grid_w, (component->y + 1) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format(" Age{:>3}", character->abilities().at(AGE) / 52).c_str());
+	ImGui::TextUnformatted(std::format("{:<4}{:>3}",
+									   _ctx.get_string("CHARACTER_AG"),
+									   character->abilities().at(AGE) / 52)
+							   .c_str());
 	pos = ImVec2{right_col * adj_grid_w, (component->y + 2) * adj_grid_h};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(
-		std::format(" RIP{:>3}", character->abilities().at(DEATHS)).c_str());
+	ImGui::TextUnformatted(std::format("{:<4}{:>3}",
+									   _ctx.get_string("CHARACTER_DA"),
+									   character->abilities().at(DEATHS))
+							   .c_str());
 
 	auto slot{1u};
 	pos = ImVec2{left_col * adj_grid_w, (component->y + 9) * adj_grid_h};
@@ -3712,6 +3748,9 @@ auto Sorcery::UI::draw_menu(const std::string name, const ImColor sel_color,
 	const auto start_pos{ImVec2{x, y}};
 	auto cursor_pos{ImVec2{x, y}};
 
+	ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign,
+						ImVec2{0.5f, 0.5f});
+	ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 0.0f);
 	with_ListBox(display_name.c_str(), sz) {
 		for (auto i = 0; i < static_cast<int>(items.size()); i++) {
 
@@ -3882,6 +3921,7 @@ auto Sorcery::UI::draw_menu(const std::string name, const ImColor sel_color,
 			}
 		}
 	}
+	ImGui::PopStyleVar(2);
 }
 
 auto Sorcery::UI::_draw_map_tile(const Tile &tile, const ImVec2 pos,
