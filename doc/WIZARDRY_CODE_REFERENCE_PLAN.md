@@ -106,19 +106,47 @@ Plan:
 4. Add strict/recommended behaviour flags for effects that intentionally differ
    from the original Apple II behaviour.
 
-Initial checklist:
+Checklist:
 
-- Latumapic: should have a visible, persistent enemy-identification effect.
-- Manifo: should have a success profile comparable to Katino.
-- Loktofeit: should use the intended success chance and consequences.
-- Haman/Mahaman: should expose the intended effect list.
-- Montino/Mamorlis/Mabadi: verify target scope, resistance, and status changes.
+The table below captures expected behaviour for the WC-referenced spells.
+Values marked `TBD` must be verified against the `Wizardry.Code` reference
+(disassembly, `list-of-fixes` notes, or `snafaru/Wizardry.Code` source) before
+the behaviour is implemented in Sorcery — they are placeholders here to keep
+the open questions visible. The "Sorcery type" column reflects the current
+`Enums::Magic::SpellType` registration in `SpellStore::_load()`; mismatches
+between that classification and the expected scope are flagged in the
+"Open questions" column.
+
+| Spell | School / Lvl | Sorcery type | Scope | Success / resist | Side effects | WC ref | Open questions |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Latumapic | Priest 3 | FIELD | Party (caster + allies) | Auto-cast, no resist | Unknown monsters display their true names in combat encounters until the party leaves the maze or the buff is dispelled | WC003 | Where is the "party knows true names" flag persisted? Affects `Monster::set_known(true)` semantics across encounters |
+| Manifo | Priest 2 | DISABLE | One foe group | Per-monster save vs spell; reference says the success profile should match Katino | Affected monsters paralyzed for one or more rounds; party gains an initiative edge while paralyzed | WC014 | Confirm the save formula matches Katino's; verify the `RESISTANCE_VS_MANIFO` ability hook is consulted during the save |
+| Loktofeit | Priest 6 | FIELD | Whole party | Success roll governed by the existing `LOKTOFELT_SUCCESS` character ability | On success: party teleports to the castle, drops most equipment, and forfeits most gold | WC028 | TBD: exact retention rules ("minus all equipment, most gold") — what fraction of gold stays, are quest items retained, and is the spell still cast (SP consumed) on failure? |
+| Haman | Mage 6 | SUPPORT | Party | Auto-cast | Caster loses one experience level immediately; rolls on a 6-entry effect table delivering party-wide buffs, heals, or escapes | WC006 | TBD: exact effect table contents; whether level-drain is curable (interacts with `curable_draining` setting) |
+| Mahaman | Mage 7 | SUPPORT | Party | Auto-cast | Caster loses one experience level immediately AND the spell is forgotten; rolls on a higher-tier effect table | WC006 | TBD: effect table contents; persistence of the "forgotten" flag in the character's known-spell list across save/load |
+| Montino | Priest 2 | DISABLE | One foe group | Per-monster save vs spell | Silenced monsters cannot cast spells until the silence status clears | WC009 | Toggle the existing `Monster::set_silenced(true)` flag; confirm save uses the same formula as other Priest 2 disables |
+| Mamorlis | Mage 5 | DISABLE | All foe groups | Per-monster save vs spell | Feared foes may attempt to flee and incur an AC penalty | WC012 | TBD: does fear actually modify AC, change flee chance, or both? Reference disagrees with the in-game string ("causes all foes to fear the party") |
+| Mabadi | Priest 6 | ATTACK | One foe | Save vs spell on the target | On a failed save the target's HP is reduced to a rolled `1d8` (the foe is wounded, not killed); on a successful save no effect | WC013 | TBD: confirm "1d8 remaining HP" vs "1d8 damage dealt" — the original strings are ambiguous |
+
+Notes:
+
+- "Sorcery type" already aligns with the expected scope for every spell except
+  potentially `MAMORLIS` (DISABLE in Sorcery, but the expected scope is all
+  foe groups, which is broader than other DISABLE-typed spells); leave the
+  classification alone until combat resolution exists to compare against.
+- Field spells (`LATUMAPIC`, `LOKTOFEIT`) can be implemented independently of
+  combat once a target hook exists for the party-wide flag/teleport.
+- Save formulas referenced as "per-monster save vs spell" should share a
+  single resolver function once combat exists; this avoids each spell drifting
+  away from the reference behaviour individually.
 
 Acceptance:
 
 - Each implemented spell has a short behaviour note and a repeatable debug or
   test path.
 - Combat-only spells are not marked complete before combat flow exists.
+- TBD rows in the checklist are resolved (replaced with concrete values) at
+  the time the corresponding spell is implemented, not deferred.
 
 ## Medium-priority candidates
 
