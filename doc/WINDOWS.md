@@ -31,6 +31,18 @@ toolchain/prefix path was not passed to CMake. If it fails with `Missing bundled
 third-party sources under ext/`, restore the local `ext/` directory before
 building.
 
+## Save data
+
+On Windows, save data is stored outside the repository at:
+
+```text
+%APPDATA%\Sorcery\save.db3
+```
+
+Delete that file to reset the local saved game state. The repository's
+`dat/save.db3` file is ignored and should not be committed; the runtime creates
+the needed database tables when the save file does not exist.
+
 ## Japanese localization
 
 The runtime string table is loaded from `dat/strings.json` as UTF-8. Set
