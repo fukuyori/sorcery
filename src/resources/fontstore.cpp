@@ -28,7 +28,10 @@
 #include "resources/filestore.hpp"
 #include "types/config.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <fstream>
+#include <string_view>
 
 Sorcery::FontStore::FontStore(Context &ctx, ImGuiIO &io)
 	: _ctx(ctx),
@@ -71,8 +74,16 @@ auto Sorcery::FontStore::_get_fonts() const -> const std::vector<FontInfo> & {
 auto Sorcery::FontStore::get_font_by_name(const std::string &name) const
 	-> std::optional<ImFont *> {
 
+	// Compare case-insensitively: FreeType may report style names in a
+	// different case to the config (e.g. "M+ 2m bold" vs "M+ 2m Bold")
+	const auto equals_ignore_case{[](std::string_view a, std::string_view b) {
+		return std::ranges::equal(a, b, [](unsigned char x, unsigned char y) {
+			return std::tolower(x) == std::tolower(y);
+		});
+	}};
+
 	for (const auto &f : fonts)
-		if (f.name == name)
+		if (equals_ignore_case(f.name, name))
 			return f.font;
 	return std::nullopt;
 }
