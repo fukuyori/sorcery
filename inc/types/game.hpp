@@ -61,7 +61,6 @@ class Game {
 		// Public Members
 		std::map<unsigned int, Character> characters;
 		std::unique_ptr<State> state;
-		std::unique_ptr<LevelStore> levels;
 		std::shared_ptr<Character> creation_candidate = nullptr;
 
 		// Public Methods
@@ -124,6 +123,7 @@ class Game {
 		auto _debug_give_party_xp() -> void;
 		auto _debug_heal_party_to_full() -> void;
 		auto _debug_harm_party_to_min() -> void;
+		auto _debug_kill_party() -> void;
 		auto _debug_toggle_light() -> void;
 
 		// Private Members

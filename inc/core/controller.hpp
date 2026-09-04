@@ -68,9 +68,11 @@ class Controller {
 		auto check_for_back(const SDL_Event event) -> bool;
 		auto check_for_back(const SDL_Event event, bool &flag) -> void;
 		auto check_for_debug(const SDL_Event event) -> void;
+		auto check_for_automap(const SDL_Event event) -> bool;
 		auto check_for_movement(const SDL_Event event) -> int;
 		auto check_for_quickload(const SDL_Event event) -> bool;
 		auto check_for_quicksave(const SDL_Event event) -> bool;
+		auto check_for_quick_inspect(const SDL_Event event) -> int;
 		auto check_for_resize(const SDL_Event event, UI *ui) -> void;
 		auto check_for_ui_toggle(const SDL_Event event) -> void;
 		auto handle_button_click(const std::string &component, UI *ui,
@@ -146,6 +148,7 @@ class Controller {
 		auto leave_game(const bool value = true) -> void;
 		auto want_to_abort() const -> bool;
 		auto want_to_leave_game() -> bool &;
+		auto clear_modal_flags() -> void;
 
 		auto handle_menu(std::string_view menu, int selection, int data,
 						 std::vector<std::reference_wrapper<bool>> &ui_flags)

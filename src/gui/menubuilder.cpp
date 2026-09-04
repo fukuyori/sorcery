@@ -23,6 +23,7 @@
 #include "gui/menubuilder.hpp"
 #include "core/context.hpp"
 #include "core/controller.hpp"
+#include "core/debug.hpp"
 #include "core/resources.hpp"
 #include "gui/define.hpp"
 #include "resources/itemstore.hpp"
@@ -137,7 +138,23 @@ const std::unordered_map<std::string, StringList> FIXED_MENUS = {
 	  "CHARACTER_CLASS_PRIEST", "CHARACTER_CLASS_THIEF",
 	  "CHARACTER_CLASS_BISHOP", "CHARACTER_CLASS_SAMURAI",
 	  "CHARACTER_CLASS_LORD", "CHARACTER_CLASS_NINJA",
-	  "CHARACTER_CLASS_RETURN"}}};
+	  "CHARACTER_CLASS_RETURN"}},
+
+	{"modal_elevator_top",
+	 {"ELEVATOR_A", "ELEVATOR_B", "ELEVATOR_C", "ELEVATOR_D",
+	  "ELEVATOR_LEAVE"}},
+
+	{"modal_elevator_bottom",
+	 {"ELEVATOR_A", "ELEVATOR_B", "ELEVATOR_C", "ELEVATOR_D", "ELEVATOR_E",
+	  "ELEVATOR_F", "ELEVATOR_LEAVE"}},
+
+	{"top_elevator_menu",
+	 {"ELEVATOR_A", "ELEVATOR_B", "ELEVATOR_C", "ELEVATOR_D",
+	  "ELEVATOR_LEAVE"}},
+
+	{"bottom_elevator_menu",
+	 {"ELEVATOR_A", "ELEVATOR_B", "ELEVATOR_C", "ELEVATOR_D", "ELEVATOR_E",
+	  "ELEVATOR_F", "ELEVATOR_LEAVE"}}};
 
 }
 
@@ -167,7 +184,7 @@ auto Sorcery::MenuBuilder::_load_party_characters(
 										   character.get_gold()));
 		else if (flags & MENU_SHOW_SPACE) {
 			const auto slots_free{character.inventory.get_empty_slots()};
-			items.emplace_back(std::format("{:<16} ({:>8})",
+			items.emplace_back(std::format("{:<21} ({:>1})",
 										   character.get_name(), slots_free));
 		} else
 			items.emplace_back(std::format("{:^21}", character.get_name()));
@@ -293,7 +310,7 @@ auto Sorcery::MenuBuilder::build(const std::string &menu_name,
 	items.clear();
 	data.clear();
 
-	// std::println("Building Menu: {}", menu_name);
+	// DEBUG_LOGF("Building menu: {}", menu_name);
 
 	// -------- Dynamic menus --------
 	if (menu_name == "roster_menu" || menu_name == "choose_menu" ||
@@ -317,7 +334,7 @@ auto Sorcery::MenuBuilder::build(const std::string &menu_name,
 		return;
 	}
 
-	if (menu_name == "give_menu") {
+	if (menu_name == "give_menu" || menu_name == "modal_give") {
 
 		_load_party_characters(items, data, MENU_SHOW_SPACE, reorder);
 		_load_fixed_menu(menu_name, width, items);
@@ -370,6 +387,14 @@ auto Sorcery::MenuBuilder::build(const std::string &menu_name,
 
 	if (menu_name == "museum_menu") {
 		_load_museum_menu(width, items);
+		return;
+	}
+
+	if (menu_name == "top_elevator_menu" || menu_name == "modal_elevator_top" ||
+		menu_name == "bottom_elevator_menu" ||
+		menu_name == "modal_elevator_bottom") {
+
+		_load_fixed_menu(menu_name, width, items);
 		return;
 	}
 

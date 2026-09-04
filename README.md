@@ -2,12 +2,9 @@
 
 An open source remake/remaster initially of the classic CRPG Wizardry, Proving Grounds of the Mad Overlord, then hopefully of the Sequels II (The Diamond Knight), III (Legacy of Llylgamyn), and V (Heart of the Maelstrom). Currently under heavy development with a release hopefully later in 2026.
 
-~~Written using SFML, TGUI, and C++.~~
-
 Written using ImGui/SDL2/OpenGL and C++
-<br>(*Note that some re-engineering is currently in progress to move to a more flexible/easier-to-use UI stack This should not affect the aimed release date of late 2026!<p>For daily updates and progress on that see the [sdl/imgui branch](https://github.com/davemoore22/sorcery/tree/sdl/imgui)*)
 
-**(Updated 3rd May 2026)**
+**(Updated 4th July 2026)**
 
 ![](/promo/screen7.png)
 ![](/promo/screen25.png)
@@ -36,6 +33,7 @@ Written using ImGui/SDL2/OpenGL and C++
 * ~~Dungeon Events~~ (DONE)
 * ~~Compendium~~ (DONE)
 * ~~Music~~ (DONE)
+* ~~Automap~~ (DONE)
 * **Inventory and Item Manipulation (DOING)**
 * **Special Item Powers and Handling (DOING)**
 * **Boltac's Equipment Shop (DOING)**
@@ -53,7 +51,7 @@ Written using ImGui/SDL2/OpenGL and C++
 * Modding
 * Plugin/3D Graphics
 
-## What next? (as of May 2026)
+## What next? (as of June 2026)
 
 Currently adding Item Usage/Invocation, as well as buying, selling, uncursing, and identifying at Boltac's. Normal inventory management has been mosty completed!
 
@@ -61,13 +59,13 @@ Initially I am planning to remake Wizardry 1, then adding 2 and 3, and then subs
 
 ## Compilation
 
-I'm currently developing primarily on Linux (Ubuntu 24). Linux build notes are
-available in [doc/LINUX.md](doc/LINUX.md), and Windows build notes are available
-in [doc/WINDOWS.md](doc/WINDOWS.md).
+Upstream development is currently Linux-focused. Full Linux compilation
+instructions are in [doc/COMPILE](doc/COMPILE), with supplemental notes in
+[doc/LINUX.md](doc/LINUX.md). Windows build notes for this fork are available in
+[doc/WINDOWS.md](doc/WINDOWS.md).
 
-In brief, both CMake (via VSCode CMake Tools) and Code::Blocks are supported
-once the various support libraries are installed. C++23 compiler support is
-required (I'm currently using GCC 14.2).
+In brief, use CMake and optionally VSCode with CMake Tools. Recent C++
+compiler support is required.
 
 All code is released under the GPL - see the doc/LICENSE text file for full details.
 
@@ -79,9 +77,7 @@ All comments and criticism and help welcome. You can find me as *Typhon* on the 
 
 Graphics used (all free/open source) are by:
 
-* とり夫 - <https://www.pixiv.net/en/users/5887541>
-* Nicolae Berbece - <https://thoseawesomeguys.com/prompts/>
-* Justin Nichol - <https://opengameart.org/users/justin-nichol>
+* Torio - <https://www.pixiv.net/en/users/5887541>
 * Various - <https://game-icons.net/>
 
 Music used (Creative Commonds) is by:

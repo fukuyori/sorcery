@@ -22,10 +22,14 @@
 
 #include "resources/imagestore.hpp"
 #include "core/context.hpp"
+#include "core/debug.hpp"
 #include "core/system.hpp"
 #include "resources/define.hpp"
 #include "resources/filestore.hpp"
 #include "types/image.hpp"
+#include "types/scopedtimer.hpp"
+
+#include <print>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-default"
@@ -46,7 +50,7 @@ Sorcery::ImageStore::ImageStore(Context &ctx)
 	_initialise();
 }
 
-auto Sorcery::ImageStore::get(const std::string file) -> Image {
+auto Sorcery::ImageStore::get(const std::string &file) -> Image {
 
 	if (!_loaded.at(file)) {
 		_load_image(file);
@@ -67,7 +71,7 @@ auto Sorcery::ImageStore::_initialise() -> bool {
 	_sources.insert(
 		_sources.end(),
 		{std::string{BANNER_TEXTURE}, std::string{BACKGROUNDS_TEXTURE},
-		 std::string{BACKGROUND_MAIN_MENU_TEXTURE}, std::string{ICONS_TEXTURE},
+		 std::string{EVENTS_TEXTURE}, std::string{ICONS_TEXTURE},
 		 std::string{ITEMS_TEXTURE}, std::string{KNOWN_CREATURES_TEXTURE},
 		 std::string{LOGO_TEXTURE}, std::string{MAPS_TEXTURE},
 		 std::string{UNKNOWN_CREATURES_TEXTURE},
@@ -85,18 +89,18 @@ auto Sorcery::ImageStore::_initialise() -> bool {
 }
 
 // Load a specific image
-auto Sorcery::ImageStore::load_image(const std::string file) -> bool {
+auto Sorcery::ImageStore::load_image(const std::string &file) -> bool {
 
 	return _load_image(file);
 }
 
-auto Sorcery::ImageStore::has_loaded(const std::string file) -> bool {
+auto Sorcery::ImageStore::has_loaded(const std::string &file) -> bool {
 
 	return _loaded.at(file);
 }
 
 // Wrapper method to load an image
-auto Sorcery::ImageStore::_load_image(const std::string file) -> bool {
+auto Sorcery::ImageStore::_load_image(const std::string &file) -> bool {
 
 	// Check to make sure we don't reload an image (in future,
 	// store the file modified timestamp so we can dynamically
@@ -105,9 +109,14 @@ auto Sorcery::ImageStore::_load_image(const std::string file) -> bool {
 		return false;
 	else {
 
+		PROFILE_SCOPE("ImageStore::_load_image");
+		DEBUG_LOGF("Loading Resource: {}", file);
+
+		const auto path{_ctx.get_file(file)};
+
 		// If not loaded, load the image
 		Image image{};
-		const auto file_path{_ctx.get_file(file).string()};
+		const auto file_path{path.string()};
 		_load_texture_from_disc(file_path.c_str(), &image.texture,
 								&image.width, &image.height);
 		_images.try_emplace(file, image);
@@ -141,8 +150,8 @@ auto Sorcery::ImageStore::_load_texture_from_disc(const char *filename,
 	glBindTexture(GL_TEXTURE_2D, image_texture);
 
 	// Setup filtering parameters for display
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 

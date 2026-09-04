@@ -104,6 +104,9 @@ class UI {
 		auto set_fullscreen(const bool value) -> void;
 		auto start() -> void;
 		auto stop() -> void;
+		auto in_popup() const -> bool;
+		auto close_all_popups() -> void;
+		auto active_popup_count() const -> int;
 
 		// Public Members
 		std::unique_ptr<ImageStore> images;
@@ -125,6 +128,7 @@ class UI {
 		std::unique_ptr<Input> input_donate;
 		std::unique_ptr<Input> input_name;
 		std::unique_ptr<Popup> popup_ouch;
+		std::unique_ptr<Popup> popup_pit;
 		std::unique_ptr<Modal> modal_camp;
 		std::unique_ptr<Message> message_tile;
 		std::unique_ptr<Modal> modal_inspect;
@@ -137,6 +141,8 @@ class UI {
 		std::unique_ptr<Modal> modal_give;
 		std::unique_ptr<Modal> modal_use;
 		std::unique_ptr<Modal> modal_invoke;
+		std::unique_ptr<Modal> modal_elevator_top;
+		std::unique_ptr<Modal> modal_elevator_bottom;
 		std::unique_ptr<VideoPlayer> vfx_player;
 		unsigned int font_sz;
 		unsigned int grid_sz;
@@ -192,6 +198,9 @@ class UI {
 		auto _display_tavern() -> void;
 		auto _display_temple() -> void;
 		auto _display_training_grounds() -> void;
+
+		auto _display_automap() -> void;
+		auto _display_graveyard() -> void;
 
 		auto _display_choose(const int mode) -> void;
 		auto _display_create_name(const int stage) -> void;
@@ -259,7 +268,9 @@ class UI {
 		auto _draw_license(Component *component, const std::string &string)
 			-> void;
 		auto _draw_loading_progress() -> void;
+		auto _draw_current_level_map() -> void;
 		auto _draw_level_no_player() -> void;
+		auto _draw_party_wipe() -> void;
 		auto _draw_level_up(const int mode) -> void;
 		auto _draw_map_tile(const Tile &tile, const ImVec2 pos, const ImVec2 sz)
 			-> void;
@@ -273,6 +284,7 @@ class UI {
 		auto _draw_recovery(const int mode) -> void;
 		auto _draw_save() -> void;
 		auto _draw_stay() -> void;
+		auto _draw_automap_legend(Component *component) -> void;
 		auto _draw_spell_info() -> void;
 		auto _draw_stepper(Component *component, const std::string &name,
 						   int *value) -> void;
@@ -291,5 +303,10 @@ class UI {
 			-> std::vector<std::reference_wrapper<bool>>;
 
 		auto _to_imgui(GLuint tex) -> ImTextureID;
+
+		auto _mage_spell_index(Enums::Magic::SpellID id) -> std::size_t;
+		auto _priest_spell_index(Enums::Magic::SpellID id) -> std::size_t;
+
+		auto _popup_states() const -> std::vector<bool *>;
 };
 };

@@ -1,6 +1,6 @@
 # Project Definition
 cmake_minimum_required(VERSION 3.22...3.22)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 project(sorcery VERSION 0.1.0)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -24,6 +24,7 @@ find_package(jsoncpp CONFIG QUIET)
 if(NOT jsoncpp_FOUND)
 	find_package(jsoncpp REQUIRED)
 endif()
+find_package(glm CONFIG QUIET)
 
 if(TARGET GLEW::GLEW)
 	set(SORCERY_GLEW_TARGET GLEW::GLEW)
@@ -96,6 +97,8 @@ add_definitions(-DZEP_SINGLE_HEADER=1)
 
 # ffmpeg
 pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
+	libavdevice
+	libavfilter
 	libavformat
 	libavcodec
 	libswresample
@@ -156,6 +159,14 @@ endif()
 
 target_compile_definitions(dear_imgui PRIVATE
 	IMGUI_ENABLE_FREETYPE
+)
+
+# Global Ifdefs
+add_library(sorcery_options INTERFACE)
+target_compile_definitions(sorcery_options INTERFACE SORCERY_PROFILE)
+target_compile_definitions(sorcery_options INTERFACE SORCERY_DEBUG)
+target_include_directories(sorcery_options INTERFACE
+    ${CMAKE_SOURCE_DIR}/ext/cereal/include
 )
 
 add_library(sorcery_warnings INTERFACE)
@@ -227,13 +238,27 @@ else()
 	)
 endif()
 
-target_link_libraries(sorcery_types PRIVATE sorcery_warnings)
-target_link_libraries(sorcery_engine PRIVATE sorcery_warnings)
-target_link_libraries(sorcery_core PRIVATE sorcery_warnings)
-target_link_libraries(sorcery_frontend PRIVATE sorcery_warnings)
-target_link_libraries(sorcery_gui PRIVATE sorcery_warnings)
-target_link_libraries(sorcery_modules PRIVATE sorcery_warnings)
-target_link_libraries(sorcery_resources PRIVATE sorcery_warnings)
+target_link_libraries(sorcery_types PRIVATE
+	sorcery_warnings
+	sorcery_options)
+target_link_libraries(sorcery_engine PRIVATE
+	sorcery_warnings
+	sorcery_options)
+target_link_libraries(sorcery_core PRIVATE
+	sorcery_warnings
+	sorcery_options)
+target_link_libraries(sorcery_frontend PRIVATE
+	sorcery_warnings
+	sorcery_options)
+target_link_libraries(sorcery_gui PRIVATE
+	sorcery_warnings
+	sorcery_options)
+target_link_libraries(sorcery_modules PRIVATE
+	sorcery_warnings
+	sorcery_options)
+target_link_libraries(sorcery_resources PRIVATE
+	sorcery_warnings
+	sorcery_options)
 
 # Link Libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -259,6 +284,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	sorcery_warnings
 )
 
+MESSAGE("Creating Post-Build Directories")
+
 # Post Build Directories
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory
 	cfg)
@@ -272,6 +299,8 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E
 	sfx)
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory
 	vfx)
+
+MESSAGE("Copying into Post-Build Directories")
 
 # Post Build Copying
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory

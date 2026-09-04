@@ -34,6 +34,7 @@
 #include "core/animation.hpp"
 #include "core/context.hpp"
 #include "core/controller.hpp"
+#include "core/debug.hpp"
 #include "core/display.hpp"
 #include "core/enum.hpp"
 #include "core/macro.hpp"
@@ -41,6 +42,7 @@
 #include "core/resources.hpp"
 #include "core/system.hpp"
 #include "core/ui.hpp"
+#include "engine/define.hpp"
 #include "engine/types.hpp"
 #include "gui/dialog.hpp"
 #include "gui/frame.hpp"
@@ -124,8 +126,16 @@ Sorcery::UI::UI(Context &ctx)
 		Enums::Layout::DialogType::OK);
 	popup_ouch = std::make_unique<Popup>(
 		_ctx, components->get("engine_base_ui:popup_ouch"));
+	popup_pit = std::make_unique<Popup>(
+		_ctx, components->get("engine_base_ui:popup_pit"));
 	modal_camp = std::make_unique<Modal>(
 		_ctx, components->get("engine_base_ui:modal_camp"));
+
+	modal_elevator_top = std::make_unique<Modal>(
+		_ctx, components->get("global:modal_elevator_top"));
+	modal_elevator_bottom = std::make_unique<Modal>(
+		_ctx, components->get("global:modal_elevator_bottom"));
+
 	modal_drop =
 		std::make_unique<Modal>(_ctx, components->get("global:modal_drop"));
 	modal_inspect =
@@ -206,6 +216,12 @@ Sorcery::UI::UI(Context &ctx)
 	};
 	_draw_modules[Enums::Screen::EDGEOFTOWN] = [this]() {
 		_display_edge_of_town();
+	};
+	_draw_modules[Enums::Screen::AUTOMAP] = [this]() {
+		_display_automap();
+	};
+	_draw_modules[Enums::Screen::GRAVEYARD] = [this]() {
+		_display_graveyard();
 	};
 	_draw_modules[Enums::Screen::INN] = [this]() {
 		_display_inn();
@@ -430,6 +446,12 @@ auto Sorcery::UI::_get_popups() const -> std::string {
 		output.append(get_popup_status((void *)message_tile.get(), "message"));
 	if (modal_camp)
 		output.append(get_popup_status((void *)modal_camp.get(), "modal"));
+	if (modal_elevator_bottom)
+		output.append(
+			get_popup_status((void *)modal_elevator_bottom.get(), "modal"));
+	if (modal_elevator_top)
+		output.append(
+			get_popup_status((void *)modal_elevator_top.get(), "modal"));
 	if (modal_drop)
 		output.append(get_popup_status((void *)modal_drop.get(), "modal"));
 	if (modal_give)
@@ -464,6 +486,8 @@ auto Sorcery::UI::_get_popups() const -> std::string {
 			get_popup_status((void *)notice_not_enough_gold.get(), "dialog"));
 	if (popup_ouch)
 		output.append(get_popup_status((void *)popup_ouch.get(), "popup"));
+	if (popup_pit)
+		output.append(get_popup_status((void *)popup_pit.get(), "popup"));
 	if (notice_pool_gold)
 		output.append(
 			get_popup_status((void *)notice_pool_gold.get(), "dialog"));
@@ -472,6 +496,8 @@ auto Sorcery::UI::_get_popups() const -> std::string {
 }
 
 auto Sorcery::UI::start() -> void {
+
+	DEBUG_LOG("Starting UI...");
 
 	// Initialise ImGUI to use SDL2/OpenGL
 	static std::string imgui_ini_filename;
@@ -548,9 +574,12 @@ auto Sorcery::UI::start() -> void {
 	input_donate->show = false;
 	input_name->show = false;
 	popup_ouch->show = false;
+	popup_pit->show = false;
 	modal_camp->show = false;
 	modal_identify->show = false;
 	modal_drop->show = false;
+	modal_elevator_bottom->show = false;
+	modal_elevator_top->show = false;
 	modal_trade->show = false;
 	modal_give->show = false;
 	modal_use->show = false;
@@ -568,6 +597,8 @@ auto Sorcery::UI::io() -> ImGuiIO & {
 }
 
 auto Sorcery::UI::stop() -> void {
+
+	DEBUG_LOG("Stopping UI...");
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplSDL2_Shutdown();
@@ -599,11 +630,18 @@ auto Sorcery::UI::display_engine() -> void {
 	dialog_leave->display(_ctx.controller->want_to_leave_game());
 	dialog_stairs_up->display(_ctx.get_flag_ref("want_take_stairs_up"));
 	dialog_stairs_down->display(_ctx.get_flag_ref("want_take_stairs_down"));
-	// if (popup_ouch->show)
-	popup_ouch->display();
+	if (popup_ouch->show)
+		popup_ouch->display();
+	if (popup_pit->show)
+		popup_pit->display();
 	message_tile->display(_ctx.get_flag_ref("after_tile_message"));
 	if (modal_camp->show)
 		modal_camp->display(_ctx.get_flag_ref("want_camp"));
+	if (modal_elevator_top->show)
+		modal_elevator_top->display(_ctx.get_flag_ref("want_elevator_top"));
+	if (modal_elevator_bottom->show)
+		modal_elevator_bottom->display(
+			_ctx.get_flag_ref("want_elevator_bottom"));
 	if (modal_inspect->show)
 		modal_inspect->display(_ctx.get_flag_ref("want_inspect"));
 	if (modal_identify->show)
@@ -830,6 +868,11 @@ auto Sorcery::UI::_draw_fg_image_with_idx(std::string_view layer,
 	} else if (source == ICONS_TEXTURE) {
 		tile_row_count = ICONS_TILE_ROW_COUNT;
 		tile_size = src_image.width / ICONS_TILE_ROW_COUNT;
+		image_size.x = src_image.width;
+		image_size.y = src_image.height;
+	} else if (source == EVENTS_TEXTURE) {
+		tile_row_count = EVENTS_TILE_ROW_COUNT;
+		tile_size = src_image.width / EVENTS_TILE_ROW_COUNT;
 		image_size.x = src_image.width;
 		image_size.y = src_image.height;
 	}
@@ -1514,8 +1557,9 @@ auto Sorcery::UI::_draw_character_mage_spells(Component *component,
 				if (!(*spell).known)
 					ImGui::BeginDisabled();
 
-				if (ImGui::Selectable((*spell).name.c_str(),
-									  &ms_selected[unenum(spell_id)])) {
+				if (ImGui::Selectable(
+						(*spell).name.c_str(),
+						&ms_selected[_mage_spell_index(spell_id)])) {
 				};
 
 				if (!(*spell).known)
@@ -1566,8 +1610,9 @@ auto Sorcery::UI::_draw_character_priest_spells(Component *component,
 				if (!(*spell).known)
 					ImGui::BeginDisabled();
 
-				if (ImGui::Selectable((*spell).name.c_str(),
-									  &ms_selected[unenum(spell_id)])) {
+				if (ImGui::Selectable(
+						(*spell).name.c_str(),
+						&ps_selected[_priest_spell_index(spell_id)])) {
 				};
 
 				if (!(*spell).known)
@@ -2374,6 +2419,133 @@ auto Sorcery::UI::_draw_text(Component *component, const std::string &string)
 	}
 }
 
+auto Sorcery::UI::_draw_party_wipe() -> void {
+
+	const auto cmp{components->get("graveyard:gravestone")};
+
+	const auto max_cols{3};
+	const auto grave_idx{GRAVESTONE_GFX_ID};
+	const auto grave_w{cmp.get_float("tile_width")};
+	const auto grave_h{cmp.get_float("tile_height")};
+	const auto x_gap{cmp.get_float("spacing_x") * adj_grid_w};
+	const auto y_gap{cmp.get_float("spacing_y") * adj_grid_h};
+
+	std::vector<std::string> names;
+
+	const auto party{_ctx.game->state->get_party_characters()};
+	for (const auto char_id : party) {
+		if (!_ctx.game->characters.contains(char_id))
+			continue;
+
+		names.emplace_back(_ctx.game->characters.at(char_id).get_name());
+	}
+
+	if (names.empty())
+		return;
+
+	const auto count{static_cast<int>(names.size())};
+	const auto cols{std::min(max_cols, count)};
+	const auto rows{(count + max_cols - 1) / max_cols};
+
+	const auto cell_w{grave_w + x_gap};
+	const auto cell_h{grave_h + y_gap};
+
+	auto origin_x{static_cast<float>(cmp.x * adj_grid_w)};
+	auto origin_y{static_cast<float>(cmp.y * adj_grid_h)};
+
+	const auto total_w{(cols * grave_w) + ((cols - 1) * x_gap)};
+
+	for (auto i = 0; i < count; ++i) {
+		const auto row{i / max_cols};
+		const auto col{i % max_cols};
+
+		const auto row_count{std::min(max_cols, count - (row * max_cols))};
+
+		const auto row_w{(row_count * grave_w) + ((row_count - 1) * x_gap)};
+
+		auto row_x{origin_x};
+
+		const ImVec2 grave_pos{row_x + (col * cell_w),
+							   origin_y + (row * cell_h)};
+
+		_draw_fg_image_with_idx(EVENTS_TEXTURE, grave_idx, grave_pos,
+								ImVec2{grave_w, grave_h});
+
+		auto text_cmp{components->get("graveyard:party_members")};
+		text_cmp.x = 0;
+		text_cmp.y = 0;
+
+		const auto name{names.at(i)};
+		const auto text_size{ImGui::CalcTextSize(name.c_str())};
+
+		text_cmp.x = static_cast<int>(
+			(grave_pos.x + (grave_w - text_size.x) / 2.0f) / adj_grid_w);
+
+		text_cmp.y =
+			static_cast<int>((grave_pos.y + grave_h + adj_grid_h) / adj_grid_h);
+
+		_draw_text(&text_cmp, name);
+	};
+}
+
+auto Sorcery::UI::_draw_automap_legend(Component *component) -> void {
+
+	struct MapLegendItem {
+			Enums::DrawMap::Feature feature;
+			std::string_view label;
+	};
+
+	using enum Enums::DrawMap::Feature;
+
+	static constexpr std::array legend{
+		MapLegendItem{FLOOR, "Floor"},
+		MapLegendItem{NORTH_WALL, "Wall"},
+		MapLegendItem{NORTH_DOOR, "Door"},
+		MapLegendItem{NORTH_SECRET, "Secret"},
+		MapLegendItem{MAP_DARKNESS, "Darkness"},
+		MapLegendItem{MAP_STAIRS_UP, "Stairs Up"},
+		MapLegendItem{MAP_STAIRS_DOWN, "Stairs Down"},
+		MapLegendItem{MAP_ELEVATOR, "Elevator"},
+		MapLegendItem{MAP_PIT, "Pit"},
+		MapLegendItem{MAP_SPINNER, "Spinner"},
+		MapLegendItem{MAP_CHUTE, "Chute"},
+		MapLegendItem{MAP_TELEPORT_FROM, "Teleport From"},
+		MapLegendItem{MAP_TELEPORT_TO, "Teleport To"},
+		MapLegendItem{EXCLAMATION, "Message"},
+	};
+
+	const auto icon_size{component->get_int("tile_size")};
+	const auto row_gap{component->get_int("row_gap")};
+
+	auto pos{ImVec2{component->x * adj_grid_w, component->y * adj_grid_h}};
+
+	with_Window(WINDOW_LAYER_MENUS, nullptr, ImGuiWindowFlags_NoDecoration) {
+
+		set_Font(fontstore->get_current_font(component->font).value());
+
+		auto cmp_level{components->get("automap:automap_level")};
+		_draw_text(&cmp_level, _ctx.game->state->level->name());
+
+		for (const auto &item : legend) {
+			_draw_fg_image_with_idx(WINDOW_LAYER_MENUS, MAPS_TEXTURE,
+									unenum(item.feature), pos,
+									ImVec2{static_cast<float>(icon_size),
+										   static_cast<float>(icon_size)});
+
+			ImGui::SetCursorPos(ImVec2{pos.x + icon_size + adj_grid_w, pos.y});
+
+			ImGui::TextUnformatted(item.label.data());
+
+			pos.y += icon_size + row_gap;
+		}
+	}
+
+	with_Window(WINDOW_LAYER_MENUS, nullptr, ImGuiWindowFlags_NoTitleBar) {
+		auto leave{components->get("automap:automap_return")};
+		_draw_button_click(&leave, _ctx.get_flag_ref("show_automap"), true);
+	}
+}
+
 // Draw a Text (String)
 auto Sorcery::UI::_draw_text(Component *component) -> void {
 	with_Window(WINDOW_LAYER_TEXTS, nullptr,
@@ -2652,64 +2824,98 @@ auto Sorcery::UI::load_message(const Enums::Map::Event event)
 				"GAME_MESSAGE_GOLD_KEY_5", "GAME_MESSAGE_GOLD_KEY_6"};
 		break;
 	case NEED_SILVER_KEY:
-		return {};
+		return {"GAME_MESSAGE_SILVER_KEY_1", "GAME_MESSAGE_SILVER_KEY_2",
+				"GAME_MESSAGE_SILVER_KEY_3", "GAME_MESSAGE_SILVER_KEY_4",
+				"GAME_MESSAGE_SILVER_KEY_5", "GAME_MESSAGE_SILVER_KEY_6",
+				"GAME_MESSAGE_SILVER_KEY_7", "GAME_MESSAGE_SILVER_KEY_8"};
 		break;
 	case NEED_BRONZE_KEY:
-		return {};
+		return {"GAME_MESSAGE_BRONZE_KEY_1", "GAME_MESSAGE_BRONZE_KEY_2",
+				"GAME_MESSAGE_BRONZE_KEY_3", "GAME_MESSAGE_BRONZE_KEY_4",
+				"GAME_MESSAGE_BRONZE_KEY_5", "GAME_MESSAGE_BRONZE_KEY_6"};
 		break;
 	case NEED_BEAR_STATUE:
-		return {};
+		return {"GAME_MESSAGE_BEAR_STATUE_1", "GAME_MESSAGE_BEAR_STATUE_2",
+				"GAME_MESSAGE_BEAR_STATUE_3"};
 		break;
 	case NEED_FROG_STATUE:
-		return {};
+		return {"GAME_MESSAGE_FROG_STATUE_1", "GAME_MESSAGE_FROG_STATUE_2",
+				"GAME_MESSAGE_FROG_STATUE_3", "GAME_MESSAGE_FROG_STATUE_4"};
 		break;
 	case PLACARD_PIT_1:
-		return {};
+		return {"GAME_MESSAGE_PLACARD_PIT_1_1", "GAME_MESSAGE_PLACARD_PIT_1_2"};
 		break;
 	case PLACARD_PIT_2:
-		return {};
+		return {"GAME_MESSAGE_PLACARD_PIT_2_1", "GAME_MESSAGE_PLACARD_PIT_2_2"};
 		break;
 	case PLACARD_PIT_3:
-		return {};
+		return {"GAME_MESSAGE_PLACARD_PIT_3_1", "GAME_MESSAGE_PLACARD_PIT_3_2"};
 		break;
 	case TURN_AROUND:
-		return {};
+		return {"GAME_MESSAGE_TURN_AROUND_1", "GAME_MESSAGE_TURN_AROUND_2"};
 		break;
 	case TURN_LEFT:
-		return {};
+		return {"GAME_MESSAGE_TURN_LEFT_1", "GAME_MESSAGE_TURN_LEFT_2"};
 		break;
 	case TURN_RIGHT:
-		return {};
+		return {"GAME_MESSAGE_TURN_RIGHT_1", "GAME_MESSAGE_TURN_RIGHT_2"};
 		break;
 	case NEED_BEAR_STATUE_2:
-		return {};
+		return {"GAME_MESSAGE_BEAR_STATUE_2_1", "GAME_MESSAGE_BEAR_STATUE_2_2",
+				"GAME_MESSAGE_BEAR_STATUE_2_3"};
 		break;
 	case TESTING_GROUNDS:
-		return {};
+		return {
+			"GAME_MESSAGE_TESTING_GROUNDS_1", "GAME_MESSAGE_TESTING_GROUNDS_2",
+			"GAME_MESSAGE_TESTING_GROUNDS_3", "GAME_MESSAGE_TESTING_GROUNDS_4"};
 		break;
 	case ALARM_BELLS:
-		return {};
+		return {"GAME_MESSAGE_ALARM_BELLS_1", "GAME_MESSAGE_ALARM_BELLS_2",
+				"GAME_MESSAGE_ALARM_BELLS_3", "GAME_MESSAGE_ALARM_BELLS_4"};
 		break;
 	case TREASURE_REPOSITORY:
-		return {};
+		return {"GAME_MESSAGE_TREASURE_REPOSITORY_1",
+				"GAME_MESSAGE_TREASURE_REPOSITORY_2"};
 		break;
 	case MONSTER_ALLOCATION_CENTRE:
-		return {};
+		return {"GAME_MESSAGE_MONSTER_ALLOCATION_CENTRE_1",
+				"GAME_MESSAGE_MONSTER_ALLOCATION_CENTRE_2"};
 		break;
 	case LARGE_DESK:
-		return {};
+		return {"GAME_MESSAGE_LARGE_DESK_1", "GAME_MESSAGE_LARGE_DESK_2",
+				"GAME_MESSAGE_LARGE_DESK_3", "GAME_MESSAGE_LARGE_DESK_4",
+				"GAME_MESSAGE_LARGE_DESK_5", "GAME_MESSAGE_LARGE_DESK_6",
+				"GAME_MESSAGE_LARGE_DESK_7", "GAME_MESSAGE_LARGE_DESK_8",
+				"GAME_MESSAGE_LARGE_DESK_9"};
 		break;
 	case TREBOR_VOICE:
-		return {};
+		return {
+			"GAME_MESSAGE_TREBOR_VOICE_1_1", "GAME_MESSAGE_TREBOR_VOICE_1_2",
+			"GAME_MESSAGE_TREBOR_VOICE_1_3", "GAME_MESSAGE_TREBOR_VOICE_1_4",
+			"GAME_MESSAGE_TREBOR_VOICE_2_1", "GAME_MESSAGE_TREBOR_VOICE_2_2",
+			"GAME_MESSAGE_TREBOR_VOICE_2_3", "GAME_MESSAGE_TREBOR_VOICE_2_4",
+			"GAME_MESSAGE_TREBOR_VOICE_2_5", "GAME_MESSAGE_TREBOR_VOICE_2_6",
+			"GAME_MESSAGE_TREBOR_VOICE_2_7", "GAME_MESSAGE_TREBOR_VOICE_2_8",
+			"GAME_MESSAGE_TREBOR_VOICE_2_9", "GAME_MESSAGE_TREBOR_VOICE_2_10",
+			"GAME_MESSAGE_TREBOR_VOICE_2_11"};
 		break;
 	case SERVICE_ELEVATOR:
-		return {};
+		return {"GAME_MESSAGE_SERVICE_ELEVATOR_1",
+				"GAME_MESSAGE_SERVICE_ELEVATOR_2",
+				"GAME_MESSAGE_SERVICE_ELEVATOR_3"};
 		break;
 	case WERDNA_BOAST:
-		return {};
+		return {
+			"GAME_MESSAGE_WERDNA_BOAST_1_1", "GAME_MESSAGE_WERDNA_BOAST_1_2",
+			"GAME_MESSAGE_WERDNA_BOAST_1_3", "GAME_MESSAGE_WERDNA_BOAST_1_4",
+			"GAME_MESSAGE_WERDNA_BOAST_1_5", "GAME_MESSAGE_WERDNA_BOAST_1_6",
+			"GAME_MESSAGE_WERDNA_BOAST_1_7", "GAME_MESSAGE_WERDNA_BOAST_1_8",
+			"GAME_MESSAGE_WERDNA_BOAST_2_1", "GAME_MESSAGE_WERDNA_BOAST_2_2",
+			"GAME_MESSAGE_WERDNA_BOAST_3_1"};
 		break;
 	case TURN_BACK:
-		return {};
+		return {"GAME_MESSAGE_TURN_BACK_1", "GAME_MESSAGE_TURN_BACK_2",
+				"GAME_MESSAGE_TURN_BACK_3"};
 		break;
 	case WERDNA_SIGN:
 		return {};
@@ -2739,7 +2945,10 @@ auto Sorcery::UI::load_message(const Enums::Map::Event event)
 		return {};
 		break;
 	case NEED_BLUE_RIBBON:
-		return {};
+		return {"GAME_MESSAGE_NEED_BLUE_RIBBON_1",
+				"GAME_MESSAGE_NEED_BLUE_RIBBON_2",
+				"GAME_MESSAGE_NEED_BLUE_RIBBON_3",
+				"GAME_MESSAGE_NEED_BLUE_RIBBON_4"};
 		break;
 	default:
 		return {};
@@ -3414,6 +3623,24 @@ auto Sorcery::UI::_display_spellbook() -> void {
 	_draw_cursor();
 }
 
+auto Sorcery::UI::_display_graveyard() -> void {
+
+	_draw_components("graveyard");
+	_draw_party_wipe();
+	_draw_cursor();
+}
+
+auto Sorcery::UI::_display_automap() -> void {
+
+	_draw_components("automap");
+	_draw_current_level_map();
+
+	auto legend{components->get("automap:automap_legend")};
+	_draw_automap_legend(&legend);
+
+	_draw_cursor();
+}
+
 auto Sorcery::UI::_display_atlas() -> void {
 
 	_draw_components("atlas");
@@ -3573,6 +3800,82 @@ auto Sorcery::UI::_display_license(const std::string &string) -> void {
 	auto component{components->get("license:license_info")};
 	_draw_license(&component, string);
 	_draw_cursor();
+}
+
+auto Sorcery::UI::_draw_current_level_map() -> void {
+
+	const auto level{_ctx.game->state->level.get()};
+	if (!level)
+		return;
+
+	const auto depth{_ctx.game->state->get_depth()};
+	const auto explored_it{_ctx.game->state->explored.find(depth)};
+	if (explored_it == _ctx.game->state->explored.end())
+		return;
+
+	const auto &explored{explored_it->second};
+
+	constexpr auto tc{20};
+	const auto map_c{components->get("automap:map_graphic")};
+	const ImVec2 top_left_pos{map_c.x * adj_grid_w, map_c.y * adj_grid_h};
+	const auto spacing{map_c.get_int("tile_spacing")};
+	const ImVec2 tile_sz{map_c.get_int("tile_size"),
+						 map_c.get_int("tile_size")};
+
+	// Remember to flip in Y-direction as (0,0) is at bottom left of map
+	const auto reverse_y{(tile_sz.x * tc) + ((tc - 1) * spacing) + 2};
+
+	for (auto y = 0; y < tc; ++y) {
+		for (auto x = 0; x < tc; ++x) {
+
+			if (const Coordinate loc{x, y}; !explored.at(loc))
+				continue;
+
+			const auto &tile{level->at(x, y)};
+			const auto tile_x{(x * tile_sz.x) + (x * spacing)};
+			const auto tile_y{(y * tile_sz.y) + (y * spacing)};
+
+			const ImVec2 tile_pos{top_left_pos.x + tile_x,
+								  top_left_pos.y + reverse_y - tile_y};
+
+			_draw_map_tile(tile, tile_pos, tile_sz);
+		}
+	}
+
+	auto player_icon{ICON_COMPASS_NORTH};
+	auto tint{ImVec4{0.33f, 1.0f, 1.0f, _ctx.animation->fade}};
+
+	switch (_ctx.game->state->get_player_facing()) {
+		using enum Enums::Map::Direction;
+
+	case NORTH:
+		player_icon = ICON_COMPASS_NORTH;
+		break;
+	case SOUTH:
+		player_icon = ICON_COMPASS_SOUTH;
+		break;
+	case EAST:
+		player_icon = ICON_COMPASS_EAST;
+		break;
+	case WEST:
+		player_icon = ICON_COMPASS_WEST;
+		break;
+	default:
+		break;
+	}
+
+	const auto player_pos{_ctx.game->state->get_player_pos()};
+
+	const auto player_tile_x{(player_pos.x * tile_sz.x) +
+							 (player_pos.x * spacing)};
+	const auto player_tile_y{(player_pos.y * tile_sz.y) +
+							 (player_pos.y * spacing)};
+
+	const ImVec2 player_draw_pos{top_left_pos.x + player_tile_x,
+								 top_left_pos.y + reverse_y - player_tile_y};
+
+	_draw_fg_image_with_idx(WINDOW_LAYER_TEXTS, ICONS_TEXTURE, player_icon,
+							player_draw_pos, tile_sz, tint);
 }
 
 auto Sorcery::UI::_draw_level_no_player() -> void {
@@ -3848,6 +4151,16 @@ auto Sorcery::UI::draw_menu(const std::string name, const ImColor sel_color,
 								{std::ref(modal_camp->show)}};
 							_ctx.controller->handle_menu_with_flags(
 								name, items, data_item, i, out_flags);
+						} else if (name == "top_elevator_menu") {
+							std::vector<std::reference_wrapper<bool>> out_flags{
+								{std::ref(modal_elevator_top->show)}};
+							_ctx.controller->handle_menu_with_flags(
+								name, items, data_item, i, out_flags);
+						} else if (name == "bottom_elevator_menu") {
+							std::vector<std::reference_wrapper<bool>> out_flags{
+								{std::ref(modal_elevator_bottom->show)}};
+							_ctx.controller->handle_menu_with_flags(
+								name, items, data_item, i, out_flags);
 						} else if (name == "inspect_menu") {
 							std::vector<std::reference_wrapper<bool>> out_flags{
 								{std::ref(modal_inspect->show)}};
@@ -4029,6 +4342,12 @@ auto Sorcery::UI::_get_menu_ui_flags(std::string_view menu)
 	if (menu == "camp_menu")
 		return {std::ref(modal_camp->show)};
 
+	if (menu == "top_elevator_menu")
+		return {std::ref(modal_elevator_top->show)};
+
+	if (menu == "bottom_elevator_menu")
+		return {std::ref(modal_elevator_bottom->show)};
+
 	if (menu == "inspect_menu")
 		return {std::ref(modal_inspect->show)};
 
@@ -4054,4 +4373,74 @@ auto Sorcery::UI::_get_menu_ui_flags(std::string_view menu)
 		return {std::ref(modal_invoke->show)};
 
 	return {};
+}
+
+auto Sorcery::UI::_mage_spell_index(Enums::Magic::SpellID id) -> std::size_t {
+	return static_cast<std::size_t>(unenum(id));
+}
+
+auto Sorcery::UI::_priest_spell_index(Enums::Magic::SpellID id) -> std::size_t {
+	return static_cast<std::size_t>(unenum(id) -
+									unenum(Enums::Magic::SpellID::BADIOS));
+}
+
+auto Sorcery::UI::in_popup() const -> bool {
+
+	return active_popup_count() > 0;
+}
+
+auto Sorcery::UI::close_all_popups() -> void {
+
+	for (auto *show : _popup_states())
+		*show = false;
+}
+
+auto Sorcery::UI::active_popup_count() const -> int {
+
+	const auto states{_popup_states()};
+
+	return std::count_if(states.begin(), states.end(), [](const bool *show) {
+		return *show;
+	});
+}
+
+auto Sorcery::UI::_popup_states() const -> std::vector<bool *> {
+
+	std::vector<bool *> states;
+
+	auto add = [&](const auto &ptr) {
+		if (ptr)
+			states.emplace_back(&ptr->show);
+	};
+
+	add(dialog_exit);
+	add(dialog_new);
+	add(dialog_leave);
+	add(notice_cannot_donate);
+	add(notice_donated_ok);
+	add(notice_not_enough_gold);
+	add(notice_divvy);
+	add(notice_pool_gold);
+	add(dialog_stairs_up);
+	add(dialog_stairs_down);
+	add(input_donate);
+	add(input_name);
+	add(popup_ouch);
+	add(popup_pit);
+	add(modal_camp);
+	add(modal_elevator_top);
+	add(modal_elevator_bottom);
+	add(message_tile);
+	add(modal_inspect);
+	add(modal_stay);
+	add(modal_help);
+	add(modal_tithe);
+	add(modal_identify);
+	add(modal_drop);
+	add(modal_trade);
+	add(modal_give);
+	add(modal_use);
+	add(modal_invoke);
+
+	return states;
 }

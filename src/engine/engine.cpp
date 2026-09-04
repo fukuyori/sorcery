@@ -27,8 +27,12 @@
 #include "core/audioplayer.hpp"
 #include "core/context.hpp"
 #include "core/controller.hpp"
+#include "core/debug.hpp"
 #include "core/define.hpp"
+#include "core/resources.hpp"
 #include "core/ui.hpp"
+#include "engine/automap.hpp"
+#include "engine/graveyard.hpp"
 #include "frontend/options.hpp"
 #include "gui/define.hpp"
 #include "gui/dialog.hpp"
@@ -50,6 +54,8 @@ Sorcery::Engine::Engine(Context &ctx)
 	_options = std::make_unique<Options>(_ctx);
 	_reorder = std::make_unique<Reorder>(_ctx);
 	_inspect = std::make_unique<Inspect>(_ctx);
+	_automap = std::make_unique<Automap>(_ctx);
+	_graveyard = std::make_unique<Graveyard>(_ctx);
 
 	_initialise();
 };
@@ -81,10 +87,9 @@ auto Sorcery::Engine::start(const int mode) -> int {
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
 
-			// Check for Quit Events
 			ImGui_ImplSDL2_ProcessEvent(&event);
-			done = _ctx.controller->check_for_abort(event);
 
+			done = _ctx.controller->check_for_abort(event);
 			if (_ctx.controller->want_to_abort())
 				return ABORT_GAME;
 
@@ -93,136 +98,162 @@ auto Sorcery::Engine::start(const int mode) -> int {
 			else if (_ctx.controller->check_for_quickload(event))
 				_application->load_state_from_binary(SAVE_STATE_FILENAME);
 
-			// Check for Window Resize
 			_ctx.controller->check_for_resize(event, _ctx.ui);
 
-			// Check for Back Event
-			_ctx.controller->check_for_back(event, _ctx.ui->modal_camp->show);
-
 			// Check for Debug
+			_ctx.controller->check_for_debug(event);
 
-			// Don't do anything else whilst a Dialog or Popup etc is up
-			auto in_popup{
-				_ctx.ui->dialog_leave->show || _ctx.ui->modal_camp->show ||
-				_ctx.ui->message_tile->show || _ctx.ui->modal_identify->show ||
-				_ctx.ui->modal_drop->show ||
-				_ctx.ui->dialog_stairs_down->show || _ctx.ui->modal_use->show ||
-				_ctx.ui->modal_invoke->show ||
-				_ctx.ui->dialog_stairs_up->show || _ctx.ui->modal_trade->show};
-			if (!in_popup) {
+			// Back closes popup first, otherwise opens camp.
+			if (_ctx.controller->check_for_back(event)) {
+				if (_ctx.ui->in_popup()) {
+					_ctx.ui->close_all_popups();
+					_ctx.controller->clear_modal_flags();
+				} else {
+					_ctx.ui->modal_camp->show = true;
+					_ctx.controller->set_flag("want_camp");
+				}
 
-				// Check for UI toggles
-				auto old_monochrome{_ctx.controller->get_monochrome()};
-				_ctx.controller->check_for_ui_toggle(event);
-				if (old_monochrome != _ctx.controller->get_monochrome())
-					_ctx.ui->set_monochrome(_ctx.controller->get_monochrome());
+				continue;
+			}
 
-				// Check for Movement
-				if (const auto movement{
-						_ctx.controller->check_for_movement(event)};
-					movement != MOVE_NONE) {
+			// From here down, no gameplay input while active popup/modal/dialog
+			if (_ctx.ui->in_popup())
+				continue;
 
-					switch (movement) {
-					case MOVE_FORWARD:
-						_ctx.game->pass_turn();
-						if (auto has_moved{_move_forward()}; !has_moved) {
+			if (_ctx.controller->check_for_automap(event)) {
+				_automap->start();
+				_automap->stop();
+				continue;
+			}
 
-							// Can't move forwards
-						} else {
+			if (_check_for_wipe()) {
+				_graveyard->start();
+				_graveyard->stop();
 
-							// Move forward
-							_ctx.ui->popup_ouch->show = false;
-							if (!_tile_explored(
-									_ctx.game->state->get_player_pos()))
-								_set_tile_explored(
-									_ctx.game->state->get_player_pos());
-						}
-						break;
-					case MOVE_BACKWARD:
-						_ctx.game->pass_turn();
-						_ctx.ui->popup_ouch->show = false;
-						if (auto has_moved{_move_backward()}; !has_moved) {
-
-							// Can't move backwards
-						} else {
-
-							// Move backwards
-							if (!_tile_explored(
-									_ctx.game->state->get_player_pos()))
-								_set_tile_explored(
-									_ctx.game->state->get_player_pos());
-						}
-						break;
-					case MOVE_TURN_LEFT:
-						_ctx.ui->popup_ouch->show = false;
-						_turn_left();
-						_ctx.game->pass_turn();
-						break;
-					case MOVE_TURN_RIGHT:
-						_ctx.ui->popup_ouch->show = false;
-						_turn_right();
-						_ctx.game->pass_turn();
-						break;
-					case MOVE_TURN_AROUND:
-						_ctx.ui->popup_ouch->show = false;
-						_turn_around();
-						_ctx.game->pass_turn();
-						break;
-					default:
-						break;
+				const auto party{_ctx.game->state->get_party_characters()};
+				for (auto &[id, character] : _ctx.game->characters) {
+					if (std::find(party.begin(), party.end(), id) !=
+						party.end()) {
+						character.set_location(
+							Enums::Character::Location::MAZE);
+						character.set_current_hp(0);
 					}
 				}
+				_ctx.game->state->clear_party();
+				_ctx.game->save_game();
+				return LEAVE_MAZE;
+			}
 
-				if (_ctx.controller->wants(Enums::Screen::OPTIONS)) {
-					_options->start(true);
-					_options->stop();
-				} else if (_ctx.controller->wants(Enums::Screen::REORDER)) {
-					_reorder->start(REORDER_MODE_CAMP);
-					_reorder->stop(REORDER_MODE_CAMP);
-				} else if (_ctx.controller->wants(Enums::Screen::INSPECT)) {
-					_inspect->start(
-						INSPECT_MODE_CAMP,
-						_ctx.game->state->get_party_char(1).value());
-					_inspect->stop(INSPECT_MODE_CAMP);
-				}
+			auto old_monochrome{_ctx.controller->get_monochrome()};
+			_ctx.controller->check_for_ui_toggle(event);
+			if (old_monochrome != _ctx.controller->get_monochrome())
+				_ctx.ui->set_monochrome(_ctx.controller->get_monochrome());
 
-				if (_ctx.controller->has_flag("want_take_stairs_up")) {
-					if (_ctx.game->state->get_depth() == -1)
-						return _go_back_to_town();
-					else
-						_go_up_a_level();
-				} else if (_ctx.controller->has_flag("want_take_stairs_down"))
-					_go_down_a_level();
+			if (const auto movement{_ctx.controller->check_for_movement(event)};
+				movement != MOVE_NONE) {
 
-				if (_ctx.controller->has_flag("after_tile_message") &&
-					!_ctx.ui->message_tile->show) {
-					// Do Event Handling
-					_ctx.controller->unset_flag("after_tile_message");
-					_ctx.controller->set_last_event(
-						Enums::Map::Event::NO_EVENT);
-				}
+				switch (movement) {
+				case MOVE_FORWARD:
+					_ctx.game->pass_turn();
+					if (auto has_moved{_move_forward()}; !has_moved) {
 
-				if (_ctx.controller->has_flag("want_quit_expedition") &&
-					!_ctx.ui->modal_camp->show) {
-					// Handle quitting expedition
-					auto party{_ctx.game->state->get_party_characters()};
-					for (auto &[id, character] : _ctx.game->characters) {
-						if (std::find(party.begin(), party.end(), id) !=
-							party.end()) {
-							character.set_location(
-								Enums::Character::Location::MAZE);
-						}
+						// Can't move forwards
+					} else {
+
+						// Move forward
+						_ctx.ui->popup_ouch->show = false;
+						//_ctx.ui->popup_pit->show = false;
+						if (!_tile_explored(_ctx.game->state->get_player_pos()))
+							_set_tile_explored(
+								_ctx.game->state->get_player_pos());
 					}
-					_ctx.controller->set_busy(true);
-					_ctx.game->save_game();
-					_ctx.controller->set_busy(false);
-					_ctx.game->state->clear_party();
-					return LEAVE_MAZE;
-				}
+					break;
+				case MOVE_BACKWARD:
+					_ctx.game->pass_turn();
+					_ctx.ui->popup_ouch->show = false;
+					//_ctx.ui->popup_pit->show = false;
+					if (auto has_moved{_move_backward()}; !has_moved) {
 
-				// check for light, elevator etc
+						// Can't move backwards
+					} else {
+
+						// Move backwards
+						if (!_tile_explored(_ctx.game->state->get_player_pos()))
+							_set_tile_explored(
+								_ctx.game->state->get_player_pos());
+					}
+					break;
+				case MOVE_TURN_LEFT:
+					_ctx.ui->popup_ouch->show = false;
+					_ctx.ui->popup_pit->show = false;
+					_turn_left();
+					_ctx.game->pass_turn();
+					break;
+				case MOVE_TURN_RIGHT:
+					_ctx.ui->popup_ouch->show = false;
+					_ctx.ui->popup_pit->show = false;
+					_turn_right();
+					_ctx.game->pass_turn();
+					break;
+				case MOVE_TURN_AROUND:
+					_ctx.ui->popup_ouch->show = false;
+					_ctx.ui->popup_pit->show = false;
+					_turn_around();
+					_ctx.game->pass_turn();
+					break;
+				default:
+					break;
+				}
 			}
 		}
+
+		if (!_ctx.ui->in_popup()) {
+			if (_ctx.controller->wants(Enums::Screen::OPTIONS)) {
+				_options->start(true);
+				_options->stop();
+			} else if (_ctx.controller->wants(Enums::Screen::REORDER)) {
+				_reorder->start(REORDER_MODE_CAMP);
+				_reorder->stop(REORDER_MODE_CAMP);
+			} else if (_ctx.controller->wants(Enums::Screen::INSPECT)) {
+				_inspect->start(INSPECT_MODE_CAMP,
+								_ctx.game->state->get_party_char(1).value());
+				_inspect->stop(INSPECT_MODE_CAMP);
+			}
+
+			if (_ctx.controller->has_flag("want_take_stairs_up")) {
+				if (_ctx.game->state->get_depth() == -1)
+					return _go_back_to_town();
+				else
+					_go_up_a_level();
+			} else if (_ctx.controller->has_flag("want_take_stairs_down"))
+				_go_down_a_level();
+
+			if (_ctx.controller->has_flag("want_quit_expedition") &&
+				!_ctx.ui->modal_camp->show) {
+
+				// Handle quitting expedition
+				auto party{_ctx.game->state->get_party_characters()};
+				for (auto &[id, character] : _ctx.game->characters) {
+					if (std::find(party.begin(), party.end(), id) !=
+						party.end()) {
+						character.set_location(
+							Enums::Character::Location::MAZE);
+					}
+				}
+				_ctx.controller->set_busy(true);
+				_ctx.game->save_game();
+				_ctx.controller->set_busy(false);
+				_ctx.game->state->clear_party();
+				return LEAVE_MAZE;
+			}
+		}
+
+		if (_ctx.controller->has_flag("after_tile_message") &&
+			!_ctx.ui->message_tile->show) {
+			_ctx.controller->unset_flag("after_tile_message");
+			_ctx.controller->set_last_event(Enums::Map::Event::NO_EVENT);
+		}
+
 		_ctx.ui->display_engine();
 		_ctx.tick();
 	}
@@ -238,18 +269,25 @@ auto Sorcery::Engine::stop() -> void {
 
 auto Sorcery::Engine::_tile_explored(const Coordinate loc) const -> bool {
 
-	return _ctx.game->state->explored[_ctx.game->state->get_depth()].at(loc);
+	const auto depth{_ctx.game->state->get_depth()};
+	const auto it{_ctx.game->state->explored.find(depth)};
+
+	if (it == _ctx.game->state->explored.end())
+		return false;
+
+	return it->second.at(loc);
 }
 
 auto Sorcery::Engine::_set_tile_explored(const Coordinate loc) -> void {
 
-	_ctx.game->state->explored[_ctx.game->state->get_depth()].set(loc);
+	const auto depth{_ctx.game->state->get_depth()};
+	_ctx.game->state->explored[depth].set(loc);
 }
 
 auto Sorcery::Engine::_go_to_location(const int depth, const Coordinate loc,
 									  const Enums::Map::Direction dir) -> void {
 
-	Level level{_ctx.game->levels->get(depth).value()};
+	Level level{_ctx.resources->levels->get(depth).value()};
 	_ctx.game->state->set_current_level(&level);
 	_ctx.game->state->set_player_pos(loc);
 	_ctx.game->state->set_player_prev_depth(_ctx.game->state->get_depth());
@@ -267,7 +305,7 @@ auto Sorcery::Engine::_start_expedition(const int mode) -> void {
 		_ctx.get_config(Enums::Config::COLOURED_WIREFRAME));
 	_ctx.ui->set_monochrome(_ctx.get_config(Enums::Config::COLOURED_WIREFRAME));
 
-	_ctx.controller->set_flag("interface_automap");
+	//_ctx.controller->set_flag("show_automap");
 	_ctx.controller->set_flag("interface_party_panel");
 	_ctx.controller->set_flag("interface_ui");
 
@@ -287,6 +325,9 @@ auto Sorcery::Engine::_start_expedition(const int mode) -> void {
 		_go_to_location(goto_depth, goto_loc, goto_dir);
 
 		_ctx.ui->modal_camp->regenerate();
+		_ctx.ui->modal_elevator_bottom->regenerate();
+		_ctx.ui->modal_elevator_top->regenerate();
+
 		_ctx.ui->modal_camp->show = true;
 
 		_ctx.ui->modal_identify->show = false;
@@ -295,10 +336,15 @@ auto Sorcery::Engine::_start_expedition(const int mode) -> void {
 		_ctx.ui->modal_invoke->show = false;
 		_ctx.ui->modal_trade->show = false;
 		_ctx.ui->modal_give->show = false;
+		_ctx.ui->modal_elevator_top->show = false;
+		_ctx.ui->modal_elevator_bottom->show = false;
 
 	} else {
 		// Start off in Camp
 		_ctx.ui->modal_camp->regenerate();
+		_ctx.ui->modal_elevator_bottom->regenerate();
+		_ctx.ui->modal_elevator_top->regenerate();
+
 		_ctx.ui->modal_camp->show = true;
 
 		// Hide any other modals that might be showing
@@ -308,6 +354,8 @@ auto Sorcery::Engine::_start_expedition(const int mode) -> void {
 		_ctx.ui->modal_invoke->show = false;
 		_ctx.ui->modal_trade->show = false;
 		_ctx.ui->modal_give->show = false;
+		_ctx.ui->modal_elevator_top->show = false;
+		_ctx.ui->modal_elevator_bottom->show = false;
 	}
 }
 
@@ -380,12 +428,75 @@ auto Sorcery::Engine::_move_forward() -> bool {
 			}
 		}
 
-		// Check for Event
-		if (const auto at{_ctx.game->state->get_player_pos()};
-			_ctx.game->state->level->at(at).has_event()) {
+		// Check for Events or Elevators etc
+		const auto at{_ctx.game->state->get_player_pos()};
+		if (_ctx.game->state->level->at(at).has_elevator()) {
 
+			const auto elevator{
+				_ctx.game->state->level->at(at).has_elevator().value()};
+			const auto top_elevator(elevator.top_depth == -1);
+
+			if (top_elevator) {
+				_ctx.ui->modal_elevator_top->show = true;
+				_ctx.controller->set_flag("want_take_elevator_top");
+				DEBUG_LOG("Player triggered top elevator");
+
+			} else {
+				_ctx.ui->modal_elevator_bottom->show = true;
+				_ctx.controller->set_flag("want_take_elevator_bottom");
+				DEBUG_LOG("Player triggered bottom elevator");
+			}
+		} else if (_ctx.game->state->level->at(at).has_teleport()) {
+
+			const auto destination{
+				_ctx.game->state->level->at(at).has_teleport().value()};
+			DEBUG_LOG("Player triggered teleporter");
+			if (destination.to_level == 0) {
+
+				// Special case of teleporting back to castle
+				return _go_back_to_town();
+			} else if (destination.to_level == _ctx.game->state->get_depth()) {
+
+				// Same level teleport
+				_ctx.game->state->set_player_pos(destination.to_loc);
+				_ctx.controller->set_can_undo(false);
+				return true;
+			} else {
+
+				// Teleport to another level
+				_ctx.game->state->set_player_prev_depth(
+					_ctx.game->state->get_depth());
+				_ctx.game->state->set_depth(_ctx.game->state->get_depth());
+				_ctx.game->state->set_player_pos(destination.to_loc);
+				_ctx.controller->set_can_undo(false);
+				return true;
+			}
+
+		} else if (_ctx.game->state->level->at(at).has_spinner()) {
+
+			auto new_facing{static_cast<Enums::Map::Direction>(
+				_ctx.get_random(Enums::System::Random::ZERO_TO_3))};
+			_ctx.game->state->set_player_facing(new_facing);
+
+			DEBUG_LOG("Player triggered spinner");
+
+			return true;
+
+		} else if (_ctx.game->state->level->at(at).has_pit()) {
+
+			_start_popup_pit();
+			DEBUG_LOG("Player triggered pit");
+			_pit_oops();
+			return true;
+
+		} else if (_ctx.game->state->level->at(at).has_event()) {
+
+			// Check for events after elevators etc, so they take precedence
 			const auto event_type{
 				_ctx.game->state->level->at(at).has_event().value()};
+
+			DEBUG_LOGF("Player triggered event: {}", unenum(event_type));
+
 			// const auto dungeon_event{_ctx.game->get_event(event_type)};
 
 			if (event_type == Enums::Map::Event::NO_EVENT) {
@@ -399,7 +510,8 @@ auto Sorcery::Engine::_move_forward() -> bool {
 			}
 		}
 
-		// Remember this is COMPASS (on screen) direction, not map direction!
+		// Remember this is COMPASS (on screen) direction, not map
+		// direction!
 		_ctx.controller->set_last_dir(Enums::Map::Direction::NORTH);
 
 		return true;
@@ -417,10 +529,24 @@ auto Sorcery::Engine::_callback_stop_popup_ouch(std::uint32_t, void *param)
 	return 0;
 }
 
+auto Sorcery::Engine::_callback_stop_popup_pit(std::uint32_t, void *param)
+	-> std::uint32_t {
+
+	((Engine *)param)->_ctx.ui->popup_pit->show = false;
+
+	return 0;
+}
+
 auto Sorcery::Engine::_start_popup_ouch() -> void {
 
 	_ctx.ui->popup_ouch->show = true;
 	SDL_AddTimer(2000, &Engine::_callback_stop_popup_ouch, this);
+}
+
+auto Sorcery::Engine::_start_popup_pit() -> void {
+
+	_ctx.ui->popup_pit->show = true;
+	SDL_AddTimer(3000, &Engine::_callback_stop_popup_pit, this);
 }
 
 auto Sorcery::Engine::_go_back_to_town() -> int {
@@ -442,7 +568,7 @@ auto Sorcery::Engine::_go_down_a_level() -> void {
 
 		// Floors are negative
 		if (to_level < 0) {
-			Level level{_ctx.game->levels->get(to_level).value()};
+			Level level{_ctx.resources->levels->get(to_level).value()};
 			_ctx.game->state->set_current_level(&level);
 			_ctx.game->state->set_player_pos(destination.to_loc);
 			_ctx.game->state->set_player_prev_depth(
@@ -466,7 +592,7 @@ auto Sorcery::Engine::_go_up_a_level() -> void {
 
 		// Floors are negative
 		if (to_level < 0) {
-			Level level{_ctx.game->levels->get(to_level).value()};
+			Level level{_ctx.resources->levels->get(to_level).value()};
 			_ctx.game->state->set_current_level(&level);
 			_ctx.game->state->set_player_pos(destination.to_loc);
 			_ctx.game->state->set_player_prev_depth(
@@ -568,6 +694,18 @@ auto Sorcery::Engine::_move_backward() -> bool {
 			}
 		}
 
+		const auto at{_ctx.game->state->get_player_pos()};
+		if (_ctx.game->state->level->at(at).has_spinner()) {
+
+			auto new_facing{static_cast<Enums::Map::Direction>(
+				_ctx.get_random(Enums::System::Random::ZERO_TO_3))};
+			_ctx.game->state->set_player_facing(new_facing);
+			_ctx.controller->set_last_dir(Enums::Map::Direction::SOUTH);
+
+			DEBUG_LOG("Player triggered spinner");
+			return true;
+		}
+
 		// Check for Event
 		if (const auto at{_ctx.game->state->get_player_pos()};
 			_ctx.game->state->level->at(at).has_event()) {
@@ -615,6 +753,16 @@ auto Sorcery::Engine::_turn_left() -> void {
 
 	_ctx.controller->set_last_dir(Enums::Map::Direction::WEST);
 	_ctx.controller->set_can_undo(false);
+
+	const auto at{_ctx.game->state->get_player_pos()};
+	if (_ctx.game->state->level->at(at).has_spinner()) {
+
+		auto new_facing{static_cast<Enums::Map::Direction>(
+			_ctx.get_random(Enums::System::Random::ZERO_TO_3))};
+		_ctx.game->state->set_player_facing(new_facing);
+
+		DEBUG_LOG("Player triggered spinner");
+	}
 }
 
 auto Sorcery::Engine::_turn_right() -> void {
@@ -639,6 +787,16 @@ auto Sorcery::Engine::_turn_right() -> void {
 
 	_ctx.controller->set_last_dir(Enums::Map::Direction::EAST);
 	_ctx.controller->set_can_undo(false);
+
+	const auto at{_ctx.game->state->get_player_pos()};
+	if (_ctx.game->state->level->at(at).has_spinner()) {
+
+		auto new_facing{static_cast<Enums::Map::Direction>(
+			_ctx.get_random(Enums::System::Random::ZERO_TO_3))};
+		_ctx.game->state->set_player_facing(new_facing);
+
+		DEBUG_LOG("Player triggered spinner");
+	}
 }
 
 auto Sorcery::Engine::_turn_around() -> void {
@@ -663,4 +821,93 @@ auto Sorcery::Engine::_turn_around() -> void {
 
 	_ctx.controller->set_last_dir(Enums::Map::Direction::SOUTH);
 	_ctx.controller->set_can_undo(false);
+
+	const auto at{_ctx.game->state->get_player_pos()};
+	if (_ctx.game->state->level->at(at).has_spinner()) {
+
+		auto new_facing{static_cast<Enums::Map::Direction>(
+			_ctx.get_random(Enums::System::Random::ZERO_TO_3))};
+		_ctx.game->state->set_player_facing(new_facing);
+
+		DEBUG_LOG("Player triggered spinner");
+	}
+}
+
+auto Sorcery::Engine::_pit_oops() -> void {
+
+	std::vector<int> deaths{};
+	deaths.clear();
+
+	auto party{_ctx.game->state->get_party_characters()};
+	for (auto &[id, character] : _ctx.game->characters) {
+		if (std::find(party.begin(), party.end(), id) != party.end()) {
+
+			const auto chance{
+				(character.get_cur_attr(Enums::Character::Attribute::AGILITY) -
+				 _ctx.game->state->get_depth()) *
+				4};
+			const auto roll(_ctx.get_random(Enums::System::Random::D100));
+			//_ctx.game->state->add_log_dice_roll(
+			//	fmt::format("{:>16} - {}", character.get_name(), "Avoid Pit"),
+			//	100, roll, chance);
+			if (roll < chance) {
+
+				// Damage is avoided
+
+			} else {
+
+				// Now in the original Apple 2 version, pit damage is based upon
+				// 3 extra values stored in the square in the TMaze records -
+				// AUX0, AUX1, and AUX2. Thanks to the data extraction by Tommy
+				// Ewers, the relevant values for each pit in the game are 0, 8
+				// and depth respectively. This is a long-winded way of saying
+				// that the pit damage (calculated in APIT and ROCKWATR) is 0 +
+				// (depth * d8), i.e. a d8 for level depth.
+
+				// Inflict damage! (remember depth is negative here and positve
+				// in original wizardry)
+				auto pit_damage{0U};
+				const auto dice{std::abs(_ctx.game->state->get_depth())};
+				for (int i = 1; i <= dice; i++)
+					pit_damage += _ctx.get_random(Enums::System::Random::D8);
+
+				//_ctx.game->state->add_log_message(
+				//	fmt::format(
+				//		"{} fell into a pit and took {} points of damage!",
+				//		character.get_name(), pit_damage),
+				//	IMT::GAME);
+
+				if (const auto alive{character.damage(pit_damage)}; !alive) {
+
+					// Oh dear, death from a pit!
+					//_game->state->add_log_message(
+					//	fmt::format("{} has died!", character.get_name()),
+					//	IMT::GAME);
+					deaths.emplace_back(id);
+				}
+			}
+		}
+	}
+
+	if (!deaths.empty()) {
+
+		// need to display a character has died dialog
+	}
+}
+
+// Will return true in the event of a wipe
+auto Sorcery::Engine::_check_for_wipe() const -> bool {
+
+	const auto party{_ctx.game->state->get_party_characters()};
+	for (auto &[id, character] : _ctx.game->characters) {
+		if (std::find(party.begin(), party.end(), id) != party.end()) {
+			using enum Enums::Character::Status;
+			if ((character.get_status() == OK) ||
+				(character.get_status() == AFRAID) ||
+				(character.get_status() == SILENCED))
+				return false;
+		}
+	}
+
+	return true;
 }

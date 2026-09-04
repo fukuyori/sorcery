@@ -25,11 +25,13 @@
 #include "common/macro.hpp"
 #include "core/context.hpp"
 #include "core/database.hpp"
+#include "core/debug.hpp"
 #include "core/resources.hpp"
 #include "core/system.hpp"
 #include "resources/filestore.hpp"
 #include "resources/itemstore.hpp"
 #include "resources/levelstore.hpp"
+#include "types/scopedtimer.hpp"
 #include "types/state.hpp"
 
 #include <fstream>
@@ -81,7 +83,7 @@ auto Sorcery::Game::_set_up_debug_keys() -> void {
 	_debug[SDLK_F2] = std::bind(&Game::_debug_give_party_random_status, this);
 	_debug[SDLK_F3] = std::bind(&Game::_debug_heal_party_to_full, this);
 	_debug[SDLK_F4] = std::bind(&Game::_debug_toggle_light, this);
-	_debug[SDLK_F5] = std::bind(&Game::_debug_harm_party_to_min, this);
+	_debug[SDLK_F5] = std::bind(&Game::_debug_kill_party, this);
 	_debug[SDLK_F6] = std::bind(&Game::_debug_give_party_gold, this);
 	_debug[SDLK_F7] = std::bind(&Game::_debug_give_party_xp, this);
 	_debug[SDLK_F8] = std::bind(&Game::_debug_give_party_random_items, this);
@@ -136,6 +138,9 @@ auto Sorcery::Game::_set_up_dungeon_events() -> void {
 	_events.emplace_back(BRONZE_KEY, "event_bronze_key", true, false, false,
 						 false);
 	_events.emplace_back(MURPHYS_GHOSTS, "event_murphys_ghosts", true, true,
+						 false, false);
+
+	_events.emplace_back(TOP_ELEVATOR, "event_top_elevator", false, false,
 						 false, false);
 
 	// Level 2
@@ -262,17 +267,23 @@ auto Sorcery::Game::create_game() -> void {
 
 auto Sorcery::Game::load_game() -> void {
 
+	PROFILE_SCOPE("Game::load_game");
+	DEBUG_LOG("Loading Game from DB");
+
 	_load_game();
 }
 
 auto Sorcery::Game::save_game() -> void {
+
+	PROFILE_SCOPE("Game::save_game");
+	DEBUG_LOG("Saving Game to DB");
 
 	_save_game();
 }
 
 auto Sorcery::Game::enter_maze() -> void {
 
-	Level level{levels->get(-1).value()};
+	Level level{_ctx.resources->levels->get(-1).value()};
 
 	state->set_current_level(&level);
 	state->restart_expedition();
@@ -299,7 +310,7 @@ auto Sorcery::Game::restart_maze(unsigned int char_id) -> void {
 	state->set_depth(to_depth);
 	state->set_player_prev_depth(state->get_depth());
 	state->set_player_pos(to_loc);
-	Level level{levels->get(to_depth).value()};
+	Level level{_ctx.resources->levels->get(to_depth).value()};
 	state->set_current_level(&level);
 }
 
@@ -312,12 +323,10 @@ auto Sorcery::Game::_clear() -> void {
 
 	// Clear existing data!
 	state.reset();
-	levels.reset();
 	characters.clear();
 	_char_ids.clear();
 
 	state = std::make_unique<State>(&_ctx);
-	levels = std::make_unique<LevelStore>(_ctx.get_file(MAPS_FILE));
 
 	state->clear_log_messages();
 	state->reset_shop(_ctx.resources->items.get());
@@ -353,7 +362,6 @@ auto Sorcery::Game::_load_game() -> void {
 	_start_time = start_time;
 	_last_time = last_time;
 	state = std::make_unique<State>();
-	levels = std::make_unique<LevelStore>(_ctx.files->get(MAPS_FILE));
 	if (data.length() > 0) {
 		trace_game("_load_game deserialize state");
 		std::stringstream ss;
@@ -646,6 +654,17 @@ auto Sorcery::Game::_debug_harm_party_to_min() -> void {
 		auto &cur_char{characters.at(idx)};
 		const auto hp{_ctx.get_random(Enums::System::Random::D4)};
 		cur_char.set_current_hp(hp);
+	}
+}
+
+auto Sorcery::Game::_debug_kill_party() -> void {
+
+	PRINT("debug_kill_party");
+
+	for (const auto party{state->get_party_characters()}; auto idx : party) {
+		auto &cur_char{characters.at(idx)};
+		cur_char.set_status(Enums::Character::Status::DEAD);
+		cur_char.set_current_hp(0);
 	}
 }
 

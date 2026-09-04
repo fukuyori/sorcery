@@ -151,11 +151,6 @@ auto Sorcery::Tile::has(const Enums::Map::Direction direction,
 	}
 }
 
-auto Sorcery::Tile::set_explored() -> void {
-
-	_properties[unenum(Enums::Tile::Properties::EXPLORED)] = true;
-}
-
 auto Sorcery::Tile::has(const Enums::Tile::Features feature) const -> bool {
 
 	return _features[unenum(feature)];
@@ -346,9 +341,19 @@ auto Sorcery::Tile::has_stairs() const -> std::optional<Teleport> {
 		return std::nullopt;
 }
 
+auto Sorcery::Tile::has_pit() const -> bool {
+
+	return _features[unenum(Enums::Tile::Features::PIT)];
+}
+
 auto Sorcery::Tile::set_teleport(Teleport teleport) -> void {
 
 	_teleport = teleport;
+}
+
+auto Sorcery::Tile::has_spinner() const -> bool {
+
+	return _features[unenum(Enums::Tile::Features::SPINNER)];
 }
 
 auto Sorcery::Tile::set_stairs(Teleport stairs) -> void {
@@ -393,8 +398,6 @@ auto Sorcery::Tile::y() const -> int {
 		return _location.value().y;
 
 	} catch (std::exception &e) {
-		// error{SYE::OPTIONAL_RETURNED, e, "tile.location.y has no
-		// value!"}; std::print("{}", error);
 		exit(EXIT_FAILURE);
 	}
 }

@@ -66,6 +66,8 @@ class Tile {
 		auto has_stairs() const -> std::optional<Teleport>;
 		auto has_teleport() const -> std::optional<Teleport>;
 		auto has_elevator() const -> std::optional<Elevator>;
+		auto has_spinner() const -> bool;
+		auto has_pit() const -> bool;
 		auto id() const -> long;
 		auto is(const Enums::Tile::Properties property) const -> bool;
 		auto loc() const -> Coordinate;
@@ -79,7 +81,6 @@ class Tile {
 		auto set(const Enums::Map::Direction direction,
 				 Enums::Tile::Edge new_wall) -> void;
 		auto set(const std::optional<Coordinate> location);
-		auto set_explored() -> void;
 		auto set_teleport(Teleport teleport) -> void;
 		auto set_stairs(Teleport stairs) -> void;
 		auto set_elevator(Elevator elevator) -> void;

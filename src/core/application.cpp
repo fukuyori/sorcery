@@ -24,6 +24,7 @@
 #include "core/animation.hpp"
 #include "core/audioplayer.hpp"
 #include "core/controller.hpp"
+#include "core/debug.hpp"
 #include "core/display.hpp"
 #include "core/resources.hpp"
 #include "core/system.hpp"
@@ -86,6 +87,8 @@ Sorcery::Application::Application(int argc, char **argv) {
 				  << std::endl;
 		std::abort();
 	});
+
+	install_signal_handlers();
 
 	// Get any command line arguments
 	_args.clear();
@@ -161,7 +164,7 @@ auto Sorcery::Application::save_state_to_binary(const std::string &filename)
 	cereal::BinaryOutputArchive archive(os);
 	archive(*_game, *_controller);
 
-	std::println("Quicksave successfully written to {}!", filename);
+	DEBUG_LOGF("Quicksave successfully written to {}!", filename);
 
 	return true;
 }
@@ -179,7 +182,7 @@ auto Sorcery::Application::load_state_from_binary(const std::string &filename)
 	cereal::BinaryInputArchive archive(is);
 	archive(*_game, *_controller);
 
-	std::println("Quicksave successfully loaded from {}!", filename);
+	DEBUG_LOGF("Quicksave successfully loaded from {}!", filename);
 
 	return true;
 }
@@ -247,6 +250,10 @@ auto Sorcery::Application::start() -> int {
 			flow = _run_maze(EXPEDITION_START);
 			break;
 
+		case AppFlow::MAZE_WITH_GOTO:
+			flow = _run_maze(EXPEDITION_GOTO);
+			break;
+
 		case AppFlow::RESTART_MAZE:
 			trace_startup("restart maze");
 			flow = _run_restart_maze(EXPEDITION_RESTART);
@@ -264,8 +271,8 @@ auto Sorcery::Application::start() -> int {
 		}
 	}
 
-	ctx.ui->stop();
 	ctx.audio->stop();
+	ctx.ui->stop();
 
 	return 0;
 }
@@ -342,6 +349,8 @@ auto Sorcery::Application::_flow_from_startup_plan(const StartupPlan &plan)
 
 	if (plan.location == StartLocation::MAZE)
 		return AppFlow::MAZE;
+	else if (plan.location == StartLocation::MAZE_WITH_GOTO)
+		return AppFlow::MAZE_WITH_GOTO;
 
 	return AppFlow::TOWN;
 }
@@ -393,12 +402,14 @@ auto Sorcery::Application::_build_startup_plan() -> StartupPlan {
 	constexpr auto PARAM_LOAD_GAME{"--load"sv};
 	constexpr auto PARAM_NEW_GAME{"--new"sv};
 	constexpr auto PARAM_QUICKSTART{"--quickstart"sv};
-	constexpr auto PARAM_GO_TO_MAZE{"--go-to-maze"sv};
+	constexpr auto PARAM_START_ENGINE{"--start-engine"sv};
+	constexpr auto PARAM_GO_TO{"--go-to"sv};
 
 	const bool load_game{_check_param(PARAM_LOAD_GAME)};
 	const bool new_game{_check_param(PARAM_NEW_GAME)};
 	const bool quickstart{_check_param(PARAM_QUICKSTART)};
-	const bool go_to_maze{_check_param(PARAM_GO_TO_MAZE)};
+	const bool start_engine{_check_param(PARAM_START_ENGINE)};
+	const bool go_to{_check_param(PARAM_GO_TO)};
 
 	// Independent global modifier
 	if (_check_param(PARAM_NO_IMAGES))
@@ -411,19 +422,28 @@ auto Sorcery::Application::_build_startup_plan() -> StartupPlan {
 	if (bootstrap_count > 1)
 		throw std::runtime_error("Invalid startup parameters");
 
-	if (load_game && go_to_maze)
-		throw std::runtime_error("--load cannot be combined with --go-to-maze");
+	if (load_game && start_engine)
+		throw std::runtime_error(
+			"--load cannot be combined with --start-engine");
+
+	if (go_to && !start_engine)
+		throw std::runtime_error("--go-to requires --start-engine");
 
 	// Build the startup plan
 	StartupPlan plan{};
 
 	// Aliases / shortcuts (highest priority first)
-	if (go_to_maze) {
+	if (start_engine) {
 		// Alias: new game + quickstart + go to maze
 		plan.bypass_menu = true;
 		plan.bootstrap = GameBootstrap::NEW_GAME;
 		plan.party = PartyMode::QUICKSTART;
 		plan.location = StartLocation::MAZE;
+
+		if (go_to) {
+			plan.go_to = true;
+			plan.location = StartLocation::MAZE_WITH_GOTO;
+		}
 
 	} else if (quickstart) {
 		// Alias: new game + quickstart party
@@ -444,6 +464,11 @@ auto Sorcery::Application::_build_startup_plan() -> StartupPlan {
 }
 
 auto Sorcery::Application::update() -> void {
+
+	if (signal_shutdown_requested()) {
+		ctx.controller->set_flag("want_abort_game");
+		ctx.controller->set_flag("want_exit_game");
+	}
 
 	ctx.audio->update();
 }
@@ -685,4 +710,20 @@ auto Sorcery::Application::_get_exe_path() const -> std::string_view {
 	static std::string base_path{std::filesystem::current_path().string()};
 	return base_path;
 #endif
+}
+
+auto Sorcery::Application::install_signal_handlers() -> void {
+
+	std::signal(SIGTERM, _handle_signal);
+	std::signal(SIGINT, _handle_signal);
+}
+
+auto Sorcery::Application::_handle_signal([[maybe_unused]] int signal) -> void {
+
+	_signal_shutdown_requested.store(true, std::memory_order_relaxed);
+}
+
+auto Sorcery::Application::signal_shutdown_requested() -> bool {
+
+	return _signal_shutdown_requested.load(std::memory_order_relaxed);
 }

@@ -34,6 +34,8 @@ class Options;
 class Inspect;
 class Reorder;
 class Application;
+class Automap;
+class Graveyard;
 
 class Engine {
 
@@ -55,6 +57,8 @@ class Engine {
 		// Private Methods
 		static auto _callback_stop_popup_ouch(std::uint32_t, void *param)
 			-> std::uint32_t;
+		static auto _callback_stop_popup_pit(std::uint32_t, void *param)
+			-> std::uint32_t;
 		auto _initialise() -> bool;
 		auto _go_back_to_town() -> int;
 		auto _go_down_a_level() -> void;
@@ -66,10 +70,13 @@ class Engine {
 		auto _set_tile_explored(const Coordinate loc) -> void;
 		auto _start_expedition(const int mode) -> void;
 		auto _start_popup_ouch() -> void;
+		auto _start_popup_pit() -> void;
 		auto _tile_explored(const Coordinate loc) const -> bool;
 		auto _turn_around() -> void;
 		auto _turn_left() -> void;
 		auto _turn_right() -> void;
+		auto _pit_oops() -> void;
+		auto _check_for_wipe() const -> bool;
 
 		// Private Members
 		Application *_application;
@@ -79,6 +86,8 @@ class Engine {
 		std::unique_ptr<Options> _options;
 		std::unique_ptr<Reorder> _reorder;
 		std::unique_ptr<Inspect> _inspect;
+		std::unique_ptr<Automap> _automap;
+		std::unique_ptr<Graveyard> _graveyard;
 };
 
 }

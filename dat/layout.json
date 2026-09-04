@@ -264,6 +264,46 @@
 					]
 				},
 				{
+					"name": "modal_elevator_top",
+					"x": "centre",
+					"y": "8",
+					"w": "40",
+					"h": "10",
+					"font": "monospace",
+					"type": "choice",
+					"string": "ELEVATOR_TOP",
+					"drawmode": "manual",
+					"alpha": "1.0",
+					"colour": "0xffffff",
+					"bg_colour": "0x000000",
+					"data": [
+						{
+							"menu_name": "top_elevator_menu",
+							"highlight": "0x6060c8"
+						}
+					]
+				},
+				{
+					"name": "modal_elevator_bottom",
+					"x": "centre",
+					"y": "8",
+					"w": "40",
+					"h": "10",
+					"font": "monospace",
+					"type": "choice",
+					"string": "ELEVATOR_BOTTOM",
+					"drawmode": "manual",
+					"alpha": "1.0",
+					"colour": "0xffffff",
+					"bg_colour": "0x000000",
+					"data": [
+						{
+							"menu_name": "bottom_elevator_menu",
+							"highlight": "0x6060c8"
+						}
+					]
+				},
+				{
 					"name": "modal_invoke",
 					"x": "centre",
 					"y": "8",
@@ -368,7 +408,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -582,6 +622,20 @@
 					"bg_colour": "0x000000"
 				},
 				{
+					"name": "popup_pit",
+					"x": "centre",
+					"y": "centre",
+					"w": "30",
+					"h": "5",
+					"font": "monospace",
+					"type": "popup",
+					"string": "POPUP_PIT",
+					"drawmode": "manual",
+					"alpha": "1.0",
+					"colour": "0xffffff",
+					"bg_colour": "0x000000"
+				},
+				{
 					"name": "main_frame",
 					"type": "frame",
 					"x": "centre",
@@ -646,7 +700,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"background": "logo.png",
+							"background": "logo.tga",
 							"title": "COMPENDIUM_BESTIARY"
 						}
 					]
@@ -765,6 +819,128 @@
 			]
 		},
 		{
+			"name": "graveyard",
+			"component": [
+				{
+					"name": "frame",
+					"w": "38",
+					"h": "31",
+					"x": "centre",
+					"y": "2",
+					"alpha": "255",
+					"type": "frame",
+					"priority": "3",
+					"background": " 0x000000ff"
+				},
+				{
+					"name": "graveyard_return",
+					"type": "button",
+					"x": "7",
+					"y": "30",
+					"w": "9",
+					"h": "1",
+					"font": "monospace",
+					"string": "GRAVEYARD_RETURN",
+					"drawmode": "manual",
+					"priority": "1",
+					"colour": "0xffffffff",
+					"bg_colour": "0x000000",
+					"alpha": "1.0"
+				},
+				{
+					"name": "background_image",
+					"x": "0",
+					"y": "0",
+					"type": "image_bg",
+					"drawmode": "automatic",
+					"priority": "0",
+					"alpha": "1.0",
+					"data": [
+						{
+							"source": "backgrounds.tga",
+							"scale": "1.0"
+						}
+					]
+				},
+				{
+					"name": "menu_frame",
+					"w": "40",
+					"h": "6",
+					"x": "centre",
+					"y": "27",
+					"alpha": "255",
+					"type": "frame",
+					"priority": "6",
+					"drawmode": "manual",
+					"background": " 0x000000ff"
+				},
+				{
+					"name": "menu",
+					"x": "centre",
+					"y": "30",
+					"w": "20",
+					"h": "4",
+					"font": "monospace",
+					"colour": "0xffffffff",
+					"size": "24",
+					"animated": "true",
+					"width": "36",
+					"background": " 0xff0000ff",
+					"justification": "centre",
+					"type": "menu",
+					"priority": "8"
+				},
+				{
+					"name": "gravestone",
+					"x": "12",
+					"y": "16",
+					"scale": "0.5",
+					"type": "image",
+					"priority": "1",
+					"texture": "background",
+					"drawmode": "manual",
+					"data": [
+						{
+							"offset_x": "8",
+							"offset_y": "0",
+							"number": "4"
+						}
+					]
+				},
+				{
+					"name": "wipe_text",
+					"x": "centre",
+					"y": "28",
+					"font": "monospace",
+					"colour": "0xffffffff",
+					"size": "24",
+					"string": "GRAVEYARD_MESSAGE",
+					"justification": "centre",
+					"type": "text",
+					"priority": "4",
+					"drawmode": "automatic"
+				},
+				{
+					"name": "party_members",
+					"font": "monospace",
+					"colour": "0xffffffff",
+					"size": "24",
+					"string": "GRAVEYARD_MESSAGE",
+					"background": " 0xff0000ff",
+					"justification": "centre",
+					"type": "text",
+					"drawmode": "manual",
+					"x": "11",
+					"y": "4",
+					"data": [
+						{
+							"spacing_y": "3"
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "museum",
 			"component": [
 				{
@@ -782,7 +958,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"background": "logo.png",
+							"background": "logo.tga",
 							"title": "COMPENDIUM_MUSEUM"
 						}
 					]
@@ -989,7 +1165,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"background": "logo.png",
+							"background": "logo.tga",
 							"title": "COMPENDIUM_ATLAS"
 						}
 					]
@@ -1290,7 +1466,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "logo.png",
+							"source": "logo.tga",
 							"scale": "1.0"
 						}
 					]
@@ -1427,7 +1603,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "banner.png",
+							"source": "banner.tga",
 							"scale": "0.5"
 						}
 					]
@@ -1504,7 +1680,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -1593,7 +1769,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -1682,7 +1858,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -1771,7 +1947,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -1900,7 +2076,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -2034,7 +2210,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -2155,7 +2331,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -2263,7 +2439,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -2352,7 +2528,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -2441,7 +2617,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -2556,7 +2732,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -2664,7 +2840,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -2753,7 +2929,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -2828,7 +3004,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -2960,7 +3136,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -3132,7 +3308,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -3268,7 +3444,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -3404,7 +3580,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -3678,7 +3854,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -3779,7 +3955,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -3854,7 +4030,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -3956,7 +4132,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -4045,7 +4221,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -4133,7 +4309,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]
@@ -4209,6 +4385,126 @@
 			]
 		},
 		{
+			"name": "automap",
+			"component": [
+				{
+					"name": "background_image",
+					"x": "0",
+					"y": "0",
+					"type": "image_bg",
+					"drawmode": "automatic",
+					"priority": "0",
+					"alpha": "1.0",
+					"data": [
+						{
+							"source": "backgrounds.tga",
+							"scale": "1.0"
+						}
+					]
+				},
+				{
+					"name": "automap_legend",
+					"x": "4",
+					"y": "6",
+					"font": "monospace",
+					"colour": "0xffffffff",
+					"size": "24",
+					"string": "",
+					"drawmode": "automatic",
+					"priority": "1",
+					"type": "other",
+					"bg_colour": "0x000000",
+					"alpha": "1.0",
+					"data": [
+						{
+							"row_gap": "1",
+							"tile_size": "27"
+						}
+					]
+				},
+				{
+					"name": "automap_level",
+					"x": "4",
+					"y": "4",
+					"font": "monospace",
+					"colour": "0xffffffff",
+					"size": "24",
+					"string": "",
+					"drawmode": "manual",
+					"priority": "1",
+					"bg_colour": "0x000000",
+					"alpha": "1.0",
+					"type": "text"
+				},
+				{
+					"name": "outer_frame",
+					"type": "frame",
+					"x": "centre",
+					"y": "centre",
+					"w": "56",
+					"h": "32",
+					"string": "",
+					"drawmode": "automatic",
+					"priority": "1",
+					"colour": "0xffffffff",
+					"bg_colour": "0x000000",
+					"alpha": "1.0",
+					"data": [
+						{
+							"title": "AUTOMAP_TITLE"
+						}
+					]
+				},
+				{
+					"name": "automap_return",
+					"type": "button",
+					"x": "7",
+					"y": "30",
+					"w": "9",
+					"h": "1",
+					"font": "monospace",
+					"string": "AUTOMAP_RETURN",
+					"drawmode": "manual",
+					"priority": "1",
+					"colour": "0xffffffff",
+					"bg_colour": "0x000000",
+					"alpha": "1.0"
+				},
+				{
+					"name": "map_frame",
+					"type": "frame",
+					"x": "22",
+					"y": "4",
+					"w": "35",
+					"h": "28",
+					"string": "",
+					"drawmode": "automatic",
+					"priority": "3",
+					"colour": "0xffffffff",
+					"bg_colour": "0x000000",
+					"alpha": "1.0"
+				},
+				{
+					"name": "map_graphic",
+					"x": "27",
+					"y": "5",
+					"font": "monospace",
+					"colour": "0xffffff",
+					"size": "32",
+					"justification": "centre",
+					"type": "other",
+					"drawmode": "automatic",
+					"priority": "5",
+					"data": [
+						{
+							"tile_spacing": "2",
+							"tile_size": "27"
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "inspect",
 			"component": [
 				{
@@ -4221,7 +4517,7 @@
 					"alpha": "1.0",
 					"data": [
 						{
-							"source": "backgrounds.png",
+							"source": "backgrounds.tga",
 							"scale": "1.0"
 						}
 					]

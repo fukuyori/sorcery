@@ -23,10 +23,14 @@
 #include "core/audioplayer.hpp"
 #include "common/ffmpeg.hpp"
 #include "common/sdl2.hpp"
+#include "core/debug.hpp"
+#include "types/scopedtimer.hpp"
 #include <iostream>
 #include <print>
 
 Sorcery::AudioPlayer::AudioPlayer() {
+
+	av_log_set_level(AV_LOG_ERROR);
 
 	SDL_AudioSpec want{};
 
@@ -47,6 +51,7 @@ Sorcery::AudioPlayer::AudioPlayer() {
 }
 
 Sorcery::AudioPlayer::~AudioPlayer() {
+
 	free_resources();
 
 	if (_device)
@@ -54,6 +59,7 @@ Sorcery::AudioPlayer::~AudioPlayer() {
 }
 
 void Sorcery::AudioPlayer::free_resources() {
+
 	if (_packet)
 		av_packet_free(&_packet);
 	if (_frame)
@@ -76,6 +82,10 @@ void Sorcery::AudioPlayer::free_resources() {
 }
 
 void Sorcery::AudioPlayer::load(const std::string &filename) {
+
+	PROFILE_SCOPE("AudioPlayer::load");
+	DEBUG_LOGF("Loading Resource: {}", filename);
+
 	free_resources();
 
 	if (avformat_open_input(&_fmt, filename.c_str(), nullptr, nullptr) < 0)
@@ -84,7 +94,7 @@ void Sorcery::AudioPlayer::load(const std::string &filename) {
 	if (avformat_find_stream_info(_fmt, nullptr) < 0)
 		throw std::runtime_error("Failed to read stream info");
 
-	const AVCodec *codec = nullptr;
+	const AVCodec *codec{nullptr};
 
 	_stream_index =
 		av_find_best_stream(_fmt, AVMEDIA_TYPE_AUDIO, -1, -1, &codec, 0);
@@ -104,17 +114,15 @@ void Sorcery::AudioPlayer::load(const std::string &filename) {
 	_frame = av_frame_alloc();
 
 	// Resampler (modern FFmpeg API)
-
 	AVChannelLayout out_layout{};
 	av_channel_layout_default(&out_layout, _spec.channels);
 
-	const AVChannelLayout *in_layout = &_codec->ch_layout;
+	const AVChannelLayout *in_layout{&_codec->ch_layout};
 
 	if (swr_alloc_set_opts2(&_swr, &out_layout, AV_SAMPLE_FMT_FLT, _spec.freq,
-
 							in_layout, _codec->sample_fmt, _codec->sample_rate,
-
 							0, nullptr) < 0) {
+
 		av_channel_layout_uninit(&out_layout);
 		throw std::runtime_error("Failed to allocate resampler");
 	}
@@ -160,11 +168,12 @@ void Sorcery::AudioPlayer::update() {
 	if (!_playing || !_fmt || _decode_failed)
 		return;
 
-	const int TARGET_BUFFER = _spec.freq * _spec.channels * sizeof(float);
+	const Uint32 target_buffer{
+		static_cast<Uint32>(_spec.freq * _spec.channels * sizeof(float))};
 	constexpr auto max_packets_per_update{512};
 
 	for (auto packets_read{0};
-		 SDL_GetQueuedAudioSize(_device) < TARGET_BUFFER &&
+		 SDL_GetQueuedAudioSize(_device) < target_buffer &&
 		 packets_read < max_packets_per_update;
 		 ++packets_read) {
 
@@ -186,23 +195,24 @@ void Sorcery::AudioPlayer::update() {
 
 				while (avcodec_receive_frame(_codec, _frame) == 0) {
 
-					int out_samples =
-						swr_get_out_samples(_swr, _frame->nb_samples);
+					int out_samples{
+						swr_get_out_samples(_swr, _frame->nb_samples)};
 
-					uint8_t *out_data = nullptr;
+					uint8_t *out_data{nullptr};
 					int out_linesize;
 
 					av_samples_alloc(&out_data, &out_linesize, _spec.channels,
 									 out_samples, AV_SAMPLE_FMT_FLT, 0);
 
-					int converted = swr_convert(_swr, &out_data, out_samples,
-												(const uint8_t **)_frame->data,
-												_frame->nb_samples);
+					int converted{swr_convert(_swr, &out_data, out_samples,
+											  (const uint8_t **)_frame->data,
+											  _frame->nb_samples)};
 
-					int size = converted * _spec.channels * sizeof(float);
+					const Uint32 size{static_cast<Uint32>(
+						converted * _spec.channels * sizeof(float))};
 
-					float *samples = reinterpret_cast<float *>(out_data);
-					int sample_count = converted * _spec.channels;
+					float *samples{reinterpret_cast<float *>(out_data)};
+					int sample_count{converted * _spec.channels};
 
 					for (int i = 0; i < sample_count; ++i)
 						samples[i] *= _volume;

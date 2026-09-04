@@ -37,7 +37,7 @@
 // https://github.com/Neargye/magic_enum/blob/master/doc/limitations.md
 #define MAGIC_ENUM_RANGE_MIN -1
 #define MAGIC_ENUM_RANGE_MAX 255
-#include "magic_enum/magic_enum.hpp"
+#include "magic_enum/include/magic_enum/magic_enum.hpp"
 #undef MAGIC_ENUM_RANGE_MIN
 #undef MAGIC_ENUM_RANGE_MAX
 
@@ -922,7 +922,8 @@ namespace Enums::Map {
 		DEADLY_RING_COMBAT = 34,
 		WERDNA_COMBAT = 35,
 		GUARANTEED_COMBAT = 36,
-		NEED_BLUE_RIBBON = 37
+		NEED_BLUE_RIBBON = 37,
+		TOP_ELEVATOR = 38,
 	};
 
 }

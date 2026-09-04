@@ -29,6 +29,9 @@
 #include "resources/stringstore.hpp"
 #include "types/component.hpp"
 #include "types/config.hpp"
+#include "types/scopedtimer.hpp"
+
+#include <print>
 
 auto Sorcery::Context::tick() -> void {
 

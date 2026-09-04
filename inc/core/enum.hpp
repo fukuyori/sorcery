@@ -51,6 +51,8 @@ enum class Screen {
 	ENGINE,
 	INSPECT,
 	REORDER,
+	AUTOMAP,
+	GRAVEYARD,
 
 	STAY,
 	CHOOSE,

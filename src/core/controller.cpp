@@ -27,6 +27,7 @@
 #include "common/sdl2.hpp"
 #include "core/context.hpp"
 #include "core/database.hpp"
+#include "core/debug.hpp"
 #include "core/define.hpp"
 #include "core/display.hpp"
 #include "core/enum.hpp"
@@ -61,7 +62,7 @@ auto Sorcery::Controller::initialise() -> void {
 	_leave_game = false;
 
 	// Store these flags (if set)
-	auto show_automap{_flags["interface_automap"]};
+	// auto show_automap{_flags["show_automap"]};
 	auto show_party_panel{_flags["interface_party_panel"]};
 	auto show_ui{_flags["interface_ui"]};
 
@@ -88,6 +89,8 @@ auto Sorcery::Controller::initialise() -> void {
 	unset_flag("select_next_character");
 
 	unset_flag("want_camp");
+	unset_flag("want_elevator_top");
+	unset_flag("want_elevator_bottom");
 	unset_flag("want_cannot_donate");
 	unset_flag("want_continue_game");
 	unset_flag("want_divvy_gold");
@@ -127,7 +130,7 @@ auto Sorcery::Controller::initialise() -> void {
 	set_selected("atlas_selected", 8);
 
 	// set ui flags again
-	_flags["interface_automap"] = show_automap;
+	//_flags["show_automap"] = show_automap;
 	_flags["interface_party_panel"] = show_party_panel;
 	_flags["interface_ui"] = show_ui;
 }
@@ -242,10 +245,8 @@ auto Sorcery::Controller::check_for_debug(const SDL_Event event) -> void {
 		if (_game != nullptr)
 			_game->call_debug(event.key.keysym.sym);
 	} else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F12) {
-
-		std::println();
 		for (auto const &[key, val] : _flags)
-			std::println("{}", std::format("{:>32}: {}", key, val));
+			DEBUG_LOGF("{}", std::format("{:>32}: {}", key, val));
 	}
 }
 
@@ -259,14 +260,17 @@ auto Sorcery::Controller::check_for_quickload(const SDL_Event event) -> bool {
 	return (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F10);
 }
 
+auto Sorcery::Controller::check_for_automap(const SDL_Event event) -> bool {
+
+	return (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_m);
+}
+
 auto Sorcery::Controller::check_for_ui_toggle(const SDL_Event event) -> void {
 
 	if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_s)
 		toggle_flag("interface_party_panel");
 	else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_o)
 		toggle_flag("interface_ui");
-	else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_m)
-		toggle_flag("interface_automap");
 	else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_n)
 		_monochrome = !_monochrome;
 	else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_p)
@@ -374,6 +378,19 @@ auto Sorcery::Controller::is_menu_item_disabled(const std::string &component,
 				return candidate.get_alignment() != party_align;
 			else
 				return false;
+		}
+	} else if (component == "give_menu" || component == "modal_give") {
+
+		if (_game != nullptr) {
+
+			const auto current_char_id{_characters["inspect"]};
+
+			if (current_char_id == data)
+				return true;
+
+			const auto slots_free{
+				_game->characters[data].inventory.get_empty_slots()};
+			return slots_free == 0;
 		}
 	} else if (component == "rest_menu") {
 
@@ -508,7 +525,7 @@ auto Sorcery::Controller::handle_toggle(const std::string &component,
 										const std::string &tab,
 										const int selection) -> void {
 
-	std::println("Toggle: {} {} {}", component, tab, selection);
+	DEBUG_LOGF("Toggle: {} {} {}", component, tab, selection);
 
 	if (component == "options_info") {
 
@@ -571,7 +588,7 @@ auto Sorcery::Controller::handle_menu_with_flags(
 	[[maybe_unused]] const int data, const int selection,
 	std::vector<std::reference_wrapper<bool>> in_flags) -> void {
 
-	std::println("Menu with Flags: {} {} {}", component, data, selection);
+	DEBUG_LOGF("Menu with Flags: {} {} {}", component, data, selection);
 
 	if (component == "stay_menu" || component == "modal_stay") {
 
@@ -834,6 +851,56 @@ auto Sorcery::Controller::check_for_back(const SDL_Event event, bool &flag)
 		flag = true;
 }
 
+auto Sorcery::Controller::clear_modal_flags() -> void {
+
+	for (const auto flag : {
+			 "want_camp",
+			 "want_inspect",
+			 "want_stay",
+			 "want_help",
+			 "want_tithe",
+			 "want_identify",
+			 "want_drop",
+			 "want_trade",
+			 "want_give",
+			 "want_use",
+			 "want_invoke",
+			 "want_take_stairs_up",
+			 "want_take_stairs_down",
+			 "after_tile_message",
+		 })
+		unset_flag(flag);
+}
+
+auto Sorcery::Controller::check_for_quick_inspect(const SDL_Event event)
+	-> int {
+
+	if (event.type != SDL_KEYDOWN)
+		return -1;
+
+	const auto scancode{event.key.keysym.scancode};
+
+	int position{-1};
+
+	// Main keyboard number row
+	if (scancode >= SDL_SCANCODE_1 && scancode <= SDL_SCANCODE_6)
+		position = static_cast<int>(scancode - SDL_SCANCODE_1) + 1;
+
+	// Numeric keypad
+	else if (scancode >= SDL_SCANCODE_KP_1 && scancode <= SDL_SCANCODE_KP_6)
+		position = static_cast<int>(scancode - SDL_SCANCODE_KP_1) + 1;
+
+	if (position == -1)
+		return -1;
+
+	const auto party_count{_game->state->get_party_size()};
+
+	if (position > party_count)
+		return -1;
+
+	return position;
+}
+
 // Check if the SDL event is a Window-Shut-Down event
 auto Sorcery::Controller::check_for_abort(const SDL_Event event) -> bool {
 
@@ -862,7 +929,7 @@ auto Sorcery::Controller::abort(const bool value) -> void {
 
 auto Sorcery::Controller::want_to_abort() const -> bool {
 
-	return _abort;
+	return _abort || has_flag("want_abort_game");
 }
 
 auto Sorcery::Controller::leave_game(const bool value) -> void {
@@ -893,7 +960,7 @@ auto Sorcery::Controller::handle_stepper_button_click(
 	const std::string &component, [[maybe_unused]] UI *ui, const bool positive,
 	int *data) -> void {
 
-	std::println("Stepper Button Click: {} {}", component, positive);
+	DEBUG_LOGF("Stepper Button Click: {} {}", component, positive);
 
 	auto candidate{_ctx.game->creation_candidate};
 
@@ -973,7 +1040,7 @@ auto Sorcery::Controller::handle_input_button_click(
 	const std::string &component, [[maybe_unused]] UI *ui, std::string *data)
 	-> void {
 
-	std::println("Input Button Click: {} {}", component, *data);
+	DEBUG_LOGF("Input Button Click: {} {}", component, *data);
 
 	if (component == "name_input_ok") {
 
@@ -991,7 +1058,7 @@ auto Sorcery::Controller::handle_button_click(const std::string &component,
 											  [[maybe_unused]] const int data)
 	-> void {
 
-	std::println("Button Click: {} {}", component, data);
+	DEBUG_LOGF("Button Click: {} {}", component, data);
 
 	if (component == "button_identify") {
 		// Show Identify Modal
@@ -1054,7 +1121,7 @@ auto Sorcery::Controller::handle_menu(const std::string &component,
 									  const int data, const int selection)
 	-> void {
 
-	std::println("Menu: {} {} {}", component, data, selection);
+	DEBUG_LOGF("Menu: {} {} {}", component, data, selection);
 
 	if (component == "remove_menu") {
 
@@ -1273,16 +1340,13 @@ auto Sorcery::Controller::get_character() const -> Character * {
 
 auto Sorcery::Controller::go_to(const Enums::Screen screen) -> void {
 
-	std::println("Go To Screen: {}", magic_enum::enum_name(screen));
+	DEBUG_LOGF("Go To Screen: {}", magic_enum::enum_name(screen));
 
 	_last_screen = _screen;
 	_screen = screen;
 }
 
 auto Sorcery::Controller::wants(const Enums::Screen value) const -> bool {
-
-	// std::println("Wants Screen: {}? {}", magic_enum::enum_name(value),
-	//			 magic_enum::enum_name(_screen));
 
 	return _screen == value;
 }
@@ -1296,7 +1360,7 @@ auto Sorcery::Controller::handle_menu(
 	std::string_view menu, int selection, int data,
 	std::vector<std::reference_wrapper<bool>> &ui_flags) -> bool {
 
-	std::println("Handle Menu: {} {} {}", menu, selection, data);
+	DEBUG_LOGF("Handle Menu: {} {} {}", menu, selection, data);
 
 	const auto it{MENU_ACTIONS.find(menu)};
 	if (it == MENU_ACTIONS.end())
