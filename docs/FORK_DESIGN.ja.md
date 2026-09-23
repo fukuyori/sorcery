@@ -328,12 +328,11 @@ language = en
 | 順 | ブランチ | 内容 | 依存 |
 |---|---|---|---|
 | 1 | `feature/ja-strings` | オーバーレイ機構、config、`strings.ja.json`（883 + 26 見直し + 156 新規） | なし |
-| 2 | `feature/ja-fonts` | `.ttc`、大文字小文字無視、日本語グリフ確認、OFL、config コメント | なし |
-| 3 | `feature/ja-menu-align` | 中央揃えの `SelectableTextAlign` 化 | 1（日本語で検証するため） |
+| 2 | `feature/ja-menu-align` | 中央揃えの `SelectableTextAlign` 化 | 1（日本語で検証するため） |
+| 3 | `feature/ja-fonts` | `.ttc`、大文字小文字無視、日本語フォント同梱、Windows GUI 起動 | 1〜2 |
 | 4 | `feature/ja-docs` | README、README.ja、CHANGELOG | 1〜3 |
 
-1 と 2 は独立しているので並行できる。各 PR で英語表示に影響が無いことと、
-日本語表示のスクリーンショットを確認する。
+この順序で移植した。英語表示と日本語表示をそれぞれ確認する。
 
 ---
 
@@ -349,4 +348,3 @@ language = en
 - Issue #1、#2 の upstream への報告。
 - `Alpha_2` 系への追従時期。`Alpha_2_Spellcasting` は Game ライブラリの再構成を
   含むため、移植完了後に差分を確認して判断する。
-- 日本語フォントの同梱可否。ライセンス上は可能（SIL OFL 1.1）。
