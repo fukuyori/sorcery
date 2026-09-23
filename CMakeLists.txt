@@ -427,10 +427,16 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 		"${CMAKE_SOURCE_DIR}/gfx"
 		"${SORCERY_DIST_DIR}/gfx"
 
-# Copying sav already includes sav/characters and sav/states.
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 		"${CMAKE_SOURCE_DIR}/sav"
-	"${SORCERY_DIST_DIR}/sav"
+		"${SORCERY_DIST_DIR}/sav"
+
+	# sav/characters and sav/states are empty in a fresh checkout, so git
+	# does not track them and copy_directory above does not create them.
+	# The game refuses to start when they are missing, so create them here.
+	COMMAND ${CMAKE_COMMAND} -E make_directory
+		"${SORCERY_DIST_DIR}/sav/characters"
+		"${SORCERY_DIST_DIR}/sav/states"
 
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 		"${CMAKE_SOURCE_DIR}/sfx"
