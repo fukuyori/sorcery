@@ -66,6 +66,8 @@ class FontStore {
 		std::map<Enums::Layout::Font, ImFont *> current_fonts;
 		ImFont *_default_font{nullptr};
 		FT_Library _ft;
+		float _rasterizer_multiply{1.0f};
+		float _glyph_extra_advance_x{0.0f};
 
 		auto _is_valid_ttf(const std::string &path) const -> bool;
 		auto _is_monospace_ttf(const std::string &path) const -> bool;

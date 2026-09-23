@@ -218,6 +218,12 @@ add_executable(${PROJECT_NAME}
 	src/sorcery.cpp
 	${sorcery_SOURCES})
 
+if(WIN32)
+    # SDL2main provides WinMain and calls SDL_main from src/sorcery.cpp.
+    # Use the GUI subsystem so launching the game does not open a console.
+    set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+endif()
+
 
 if(SORCERY_ENABLE_IWYU)
     set_property(TARGET ${PROJECT_NAME}
