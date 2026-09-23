@@ -75,6 +75,7 @@ Sorcery::FileStore::FileStore() {
 	_add_path(DATA_DIR, MAPS_FILE);
 	_add_path(DATA_DIR, MONSTERS_FILE);
 	_add_path(DATA_DIR, STRINGS_FILE);
+	_add_path(DATA_DIR, STRINGS_JA_FILE, false);
 
 	// Fonts (required)
 	_add_path(DATA_DIR, FONT_DIR, MONOSPACE_1_APPLE2_FILE);

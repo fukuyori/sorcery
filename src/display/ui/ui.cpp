@@ -1016,50 +1016,50 @@ auto Sorcery::UI::draw_character_summary(Component *component, const Character *
 	using enum Enums::Character::Attribute;
 	auto pos{metrics->grid_pos(left_col, component->y)};
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>8} {:>2}", "Strength", character->get_cur_attr(STRENGTH)).c_str());
+	ImGui::TextUnformatted(std::format("{:>8} {:>2}", _ctx.get_string("CHARACTER_STRENGTH"), character->get_cur_attr(STRENGTH)).c_str());
 	pos = metrics->grid_pos(left_col, component->y + 1);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>8} {:>2}", "I.Q.", character->get_cur_attr(IQ)).c_str());
+	ImGui::TextUnformatted(std::format("{:>8} {:>2}", _ctx.get_string("CHARACTER_IQ"), character->get_cur_attr(IQ)).c_str());
 	pos = metrics->grid_pos(left_col, component->y + 2);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>8} {:>2}", "Piety", character->get_cur_attr(PIETY)).c_str());
+	ImGui::TextUnformatted(std::format("{:>8} {:>2}", _ctx.get_string("CHARACTER_PIETY"), character->get_cur_attr(PIETY)).c_str());
 	pos = metrics->grid_pos(left_col, component->y + 3);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>8} {:>2}", "Vitality", character->get_cur_attr(VITALITY)).c_str());
+	ImGui::TextUnformatted(std::format("{:>8} {:>2}", _ctx.get_string("CHARACTER_VITALITY"), character->get_cur_attr(VITALITY)).c_str());
 	pos = metrics->grid_pos(left_col, component->y + 4);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>8} {:>2}", "Agility", character->get_cur_attr(AGILITY)).c_str());
+	ImGui::TextUnformatted(std::format("{:>8} {:>2}", _ctx.get_string("CHARACTER_AGILITY"), character->get_cur_attr(AGILITY)).c_str());
 	pos = metrics->grid_pos(left_col, component->y + 5);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:>8} {:>2}", "Luck", character->get_cur_attr(LUCK)).c_str());
+	ImGui::TextUnformatted(std::format("{:>8} {:>2}", _ctx.get_string("CHARACTER_LUCK"), character->get_cur_attr(LUCK)).c_str());
 
 	pos = metrics->grid_pos(left_col, component->y + 7);
 	ImGui::SetCursorPos(pos);
 	const auto &sp{character->magic().mage_current_spellpoints()};
 	auto mage{
 		std::format("{}/{}/{}/{}/{}/{}/{}", sp.at(1), sp.at(2), sp.at(3), sp.at(4), sp.at(5), sp.at(6), sp.at(7))};
-	ImGui::TextUnformatted(std::format("Mage {}", mage).c_str());
+	ImGui::TextUnformatted(std::format("{} {}", _ctx.get_string("CHARACTER_MAGE"), mage).c_str());
 
 	pos = metrics->grid_pos(middle_col, component->y);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:<6} {:>10}", "Gold", character->get_gold()).c_str());
+	ImGui::TextUnformatted(std::format("{:<6} {:>10}", _ctx.get_string("CHARACTER_GO"), character->get_gold()).c_str());
 	pos = metrics->grid_pos(middle_col, component->y + 1);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:<6} {:>10}", "E.P.", character->get_cur_xp()).c_str());
+	ImGui::TextUnformatted(std::format("{:<6} {:>10}", _ctx.get_string("CHARACTER_XP"), character->get_cur_xp()).c_str());
 	pos = metrics->grid_pos(middle_col, component->y + 2);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:<6} {:>10}", "Next", character->get_next_xp()).c_str());
+	ImGui::TextUnformatted(std::format("{:<6} {:>10}", _ctx.get_string("CHARACTER_NX"), character->get_next_xp()).c_str());
 	pos = metrics->grid_pos(middle_col, component->y + 3);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:<6} {:>10}", "Marks", character->abilities().at(MARKS)).c_str());
+	ImGui::TextUnformatted(std::format("{:<6} {:>10}", _ctx.get_string("CHARACTER_MK"), character->abilities().at(MARKS)).c_str());
 	pos = metrics->grid_pos(middle_col, component->y + 4);
 	ImGui::SetCursorPos(pos);
 	ImGui::TextUnformatted(
-		std::format("{:<4} {}/{}", "H.P.", character->abilities().at(CURRENT_HP), character->abilities().at(MAX_HP))
+		std::format("{:<4} {}/{}", _ctx.get_string("CHARACTER_HS"), character->abilities().at(CURRENT_HP), character->abilities().at(MAX_HP))
 			.c_str());
 	pos = metrics->grid_pos(middle_col, component->y + 5);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("{:<6} {:>18}", "Status", character->get_status_string()).c_str());
+	ImGui::TextUnformatted(std::format("{:<6} {:>18}", _ctx.get_string("CHARACTER_SS"), character->get_status_string()).c_str());
 
 	const auto &sp2{character->magic().priest_current_spellpoints()};
 	auto priest{std::format("{}/{}/{}/{}/{}/{}/{}", sp2.at(1), sp2.at(2), sp2.at(3), sp2.at(4), sp2.at(5), sp2.at(6),
@@ -1067,23 +1067,23 @@ auto Sorcery::UI::draw_character_summary(Component *component, const Character *
 
 	pos = metrics->grid_pos(component->x + 20, component->y + 7);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("Prst {}", priest).c_str());
+	ImGui::TextUnformatted(std::format("{} {}", _ctx.get_string("CHARACTER_PRIEST"), priest).c_str());
 
 	pos = metrics->grid_pos(right_col, component->y);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("Swim{:>3}", character->abilities().at(SWIM)).c_str());
+	ImGui::TextUnformatted(std::format("{}{:>3}", _ctx.get_string("CHARACTER_SW"), character->abilities().at(SWIM)).c_str());
 
 	pos = metrics->grid_pos(right_col, component->y + 1);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format(" Age{:>3}", character->abilities().at(AGE) / 52).c_str());
+	ImGui::TextUnformatted(std::format(" {}{:>3}", _ctx.get_string("CHARACTER_AG"), character->abilities().at(AGE) / 52).c_str());
 
 	pos = metrics->grid_pos(right_col, component->y + 2);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format(" RIP{:>3}", character->abilities().at(DEATHS)).c_str());
+	ImGui::TextUnformatted(std::format(" {}{:>3}", _ctx.get_string("CHARACTER_DA"), character->abilities().at(DEATHS)).c_str());
 
 	pos = metrics->grid_pos(right_col, component->y + 4);
 	ImGui::SetCursorPos(pos);
-	ImGui::TextUnformatted(std::format("A.C. {:>2}", character->get_cur_ac_str()).c_str());
+	ImGui::TextUnformatted(std::format("{} {:>2}", _ctx.get_string("CHARACTER_AR"), character->get_cur_ac_str()).c_str());
 
 	auto slot{1u};
 	pos = metrics->grid_pos(left_col, component->y + 9);
@@ -3454,19 +3454,19 @@ auto Sorcery::UI::draw_character_strength([[maybe_unused]] Component *component,
 
 	ImGui::NewLine();
 
-	draw_stat_heading("Strength", character->get_cur_attr(STRENGTH));
+	draw_stat_heading(_ctx.get_string("CHARACTER_STRENGTH"), character->get_cur_attr(STRENGTH));
 
 	ImGui::NewLine();
 
-	draw_stat_modifier("Atk Mod", character->abilities().at(ATTACK_MODIFIER));
+	draw_stat_modifier(_ctx.get_string("CHARACTER_AM"), character->abilities().at(ATTACK_MODIFIER));
 
-	draw_stat_modifier("Hit Prob", character->abilities().at(HIT_PROBABILITY));
+	draw_stat_modifier(_ctx.get_string("CHARACTER_HP"), character->abilities().at(HIT_PROBABILITY));
 
-	draw_stat_modifier("Bonus Damg", character->abilities().at(BONUS_DAMAGE));
+	draw_stat_modifier(_ctx.get_string("CHARACTER_BD"), character->abilities().at(BONUS_DAMAGE));
 
-	draw_stat_value("Num Attacks", character->abilities().at(BASE_NUMBER_OF_ATTACKS));
+	draw_stat_value(_ctx.get_string("CHARACTER_NA"), character->abilities().at(BASE_NUMBER_OF_ATTACKS));
 
-	draw_stat_value("Unarmed Damg", character->abilities().at(UNARMED_DAMAGE));
+	draw_stat_value(_ctx.get_string("CHARACTER_MU"), character->abilities().at(UNARMED_DAMAGE));
 }
 
 auto Sorcery::UI::draw_character_vitality([[maybe_unused]] Component *component, const Character *character) -> void {
@@ -3476,19 +3476,19 @@ auto Sorcery::UI::draw_character_vitality([[maybe_unused]] Component *component,
 
 	ImGui::NewLine();
 
-	draw_stat_heading("Vitality", character->get_cur_attr(VITALITY));
+	draw_stat_heading(_ctx.get_string("CHARACTER_VITALITY"), character->get_cur_attr(VITALITY));
 
 	ImGui::NewLine();
 
-	draw_stat_modifier("Vit Bonus", character->abilities().at(VITALITY_BONUS));
+	draw_stat_modifier(_ctx.get_string("CHARACTER_VB"), character->abilities().at(VITALITY_BONUS));
 
-	draw_stat_modifier("Bonus HP", character->abilities().at(BONUS_HIT_POINTS));
+	draw_stat_modifier(_ctx.get_string("CHARACTER_BH"), character->abilities().at(BONUS_HIT_POINTS));
 
-	draw_stat_percent("Ress / Dead", character->abilities().at(DEAD_RESURRECT));
+	draw_stat_percent(_ctx.get_string("CHARACTER_RD"), character->abilities().at(DEAD_RESURRECT));
 
-	draw_stat_percent("Ress / Ashes", character->abilities().at(ASHES_RESURRECT));
+	draw_stat_percent(_ctx.get_string("CHARACTER_RA"), character->abilities().at(ASHES_RESURRECT));
 
-	draw_stat_percent("Ress / Spell", character->abilities().at(DI_KADORTO_RESURRECT));
+	draw_stat_percent(_ctx.get_string("CHARACTER_RE"), character->abilities().at(DI_KADORTO_RESURRECT));
 }
 
 auto Sorcery::UI::draw_character_iq([[maybe_unused]] Component *component, const Character *character) -> void {
@@ -3498,17 +3498,17 @@ auto Sorcery::UI::draw_character_iq([[maybe_unused]] Component *component, const
 
 	ImGui::NewLine();
 
-	draw_stat_heading("I.Q.", character->get_cur_attr(IQ));
+	draw_stat_heading(_ctx.get_string("CHARACTER_IQ"), character->get_cur_attr(IQ));
 
 	ImGui::NewLine();
 
-	draw_stat_percent("Spell Learn", character->abilities().at(MAGE_SPELL_LEARN));
+	draw_stat_percent(_ctx.get_string("CHARACTER_SP"), character->abilities().at(MAGE_SPELL_LEARN));
 
-	draw_stat_percent("ID Items", character->abilities().at(IDENTIFY_ITEMS));
+	draw_stat_percent(_ctx.get_string("CHARACTER_II"), character->abilities().at(IDENTIFY_ITEMS));
 
-	draw_stat_percent("ID Curse", character->abilities().at(IDENTIFY_CURSE));
+	draw_stat_percent(_ctx.get_string("CHARACTER_IC"), character->abilities().at(IDENTIFY_CURSE));
 
-	draw_stat_percent("ID Foes", character->abilities().at(IDENTIFY_FOES));
+	draw_stat_percent(_ctx.get_string("CHARACTER_IF"), character->abilities().at(IDENTIFY_FOES));
 }
 
 auto Sorcery::UI::draw_character_agility([[maybe_unused]] Component *component, const Character *character) -> void {
@@ -3518,21 +3518,21 @@ auto Sorcery::UI::draw_character_agility([[maybe_unused]] Component *component, 
 
 	ImGui::NewLine();
 
-	draw_stat_heading("Agility", character->get_cur_attr(AGILITY));
+	draw_stat_heading(_ctx.get_string("CHARACTER_AGILITY"), character->get_cur_attr(AGILITY));
 
 	ImGui::NewLine();
 
-	draw_stat_modifier("Int Mod", character->abilities().at(INITIATIVE_MODIFIER));
+	draw_stat_modifier(_ctx.get_string("CHARACTER_IM"), character->abilities().at(INITIATIVE_MODIFIER));
 
-	draw_stat_percent("Crit Hit", character->abilities().at(BASE_CRITICAL_HIT));
+	draw_stat_percent(_ctx.get_string("CHARACTER_CH"), character->abilities().at(BASE_CRITICAL_HIT));
 
-	draw_stat_percent("ID Trap", character->abilities().at(IDENTIFY_TRAP));
+	draw_stat_percent(_ctx.get_string("CHARACTER_IT"), character->abilities().at(IDENTIFY_TRAP));
 
-	draw_stat_percent("Disarm Trap", character->abilities().at(BASE_DISARM_TRAP));
+	draw_stat_percent(_ctx.get_string("CHARACTER_DT"), character->abilities().at(BASE_DISARM_TRAP));
 
-	draw_stat_percent("Avoid Trap", 100 - character->abilities().at(ACTIVATE_TRAP));
+	draw_stat_percent(_ctx.get_string("CHARACTER_AT"), 100 - character->abilities().at(ACTIVATE_TRAP));
 
-	draw_stat_percent("Avoid Pit", character->abilities().at(BASE_AVOID_PIT));
+	draw_stat_percent(_ctx.get_string("CHARACTER_AP"), character->abilities().at(BASE_AVOID_PIT));
 }
 
 auto Sorcery::UI::draw_character_piety([[maybe_unused]] Component *component, const Character *character) -> void {
@@ -3542,15 +3542,15 @@ auto Sorcery::UI::draw_character_piety([[maybe_unused]] Component *component, co
 
 	ImGui::NewLine();
 
-	draw_stat_heading("Piety", character->get_cur_attr(PIETY));
+	draw_stat_heading(_ctx.get_string("CHARACTER_PIETY"), character->get_cur_attr(PIETY));
 
 	ImGui::NewLine();
 
-	draw_stat_percent("Spell Learn", character->abilities().at(PRIEST_SPELL_LEARN));
+	draw_stat_percent(_ctx.get_string("CHARACTER_SM"), character->abilities().at(PRIEST_SPELL_LEARN));
 
-	draw_stat_percent("Rec Chance", character->abilities().at(LOKTOFELT_SUCCESS));
+	draw_stat_percent(_ctx.get_string("CHARACTER_RS"), character->abilities().at(LOKTOFELT_SUCCESS));
 
-	draw_stat_percent("Base Dispell", character->abilities().at(BASE_DISPELL));
+	draw_stat_percent(_ctx.get_string("CHARACTER_BS"), character->abilities().at(BASE_DISPELL));
 }
 
 auto Sorcery::UI::draw_character_luck([[maybe_unused]] Component *component, const Character *character) -> void {
@@ -3560,59 +3560,59 @@ auto Sorcery::UI::draw_character_luck([[maybe_unused]] Component *component, con
 
 	ImGui::NewLine();
 
-	draw_stat_heading("Luck", character->get_cur_attr(LUCK));
+	draw_stat_heading(_ctx.get_string("CHARACTER_LUCK"), character->get_cur_attr(LUCK));
 
 	ImGui::NewLine();
 
-	draw_stat_percent("Res Bonus", character->abilities().at(BASE_RESIST_BONUS));
+	draw_stat_percent(_ctx.get_string("CHARACTER_RB"), character->abilities().at(BASE_RESIST_BONUS));
 
-	draw_stat_percent("Wipe Rec", character->abilities().at(EQUIPMENT_INTACT_ON_WIPE));
+	draw_stat_percent(_ctx.get_string("CHARACTER_WI"), character->abilities().at(EQUIPMENT_INTACT_ON_WIPE));
 }
 auto Sorcery::UI::draw_character_res([[maybe_unused]] Component *component, const Character *character) -> void {
 
 	using enum Enums::Character::Ability;
 
 	ImGui::NewLine();
-	ImGui::TextUnformatted("Resistances");
+	ImGui::TextUnformatted(_ctx.get_string("CHARACTER_RESISTANCES").c_str());
 	ImGui::NewLine();
 
 	with_Table("character_resistances", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_SizingStretchSame) {
 
 		ImGui::TableNextColumn();
-		draw_stat_percent("vs Crit Hit", character->abilities().at(RESISTANCE_VS_CRITICAL_HIT) * 5);
+		draw_stat_percent(_ctx.get_string("CHARACTER_RC"), character->abilities().at(RESISTANCE_VS_CRITICAL_HIT) * 5);
 
 		ImGui::TableNextColumn();
-		draw_stat_percent("vs Sleep", character->abilities().at(RESISTANCE_VS_KATINO));
+		draw_stat_percent(_ctx.get_string("CHARACTER_SE"), character->abilities().at(RESISTANCE_VS_KATINO));
 
 		ImGui::TableNextColumn();
-		draw_stat_percent("vs Pois / Para", character->abilities().at(RESISTANCE_VS_POISON_PARALYSIS) * 5);
+		draw_stat_percent(_ctx.get_string("CHARACTER_PP"), character->abilities().at(RESISTANCE_VS_POISON_PARALYSIS) * 5);
 
 		ImGui::TableNextColumn();
-		draw_stat_percent("vs Death", character->abilities().at(RESISTANCE_VS_BADI));
+		draw_stat_percent(_ctx.get_string("CHARACTER_DE"), character->abilities().at(RESISTANCE_VS_BADI));
 
 		ImGui::TableNextColumn();
-		draw_stat_percent("vs Stoning", character->abilities().at(RESISTANCE_VS_STONING) * 5);
+		draw_stat_percent(_ctx.get_string("CHARACTER_ST"), character->abilities().at(RESISTANCE_VS_STONING) * 5);
 
 		ImGui::TableNextColumn();
-		draw_stat_percent("vs Statue", character->abilities().at(RESISTANCE_VS_MANIFO));
+		draw_stat_percent(_ctx.get_string("CHARACTER_SU"), character->abilities().at(RESISTANCE_VS_MANIFO));
 
 		ImGui::TableNextColumn();
-		draw_stat_percent("vs Breath", character->abilities().at(RESISTANCE_VS_BREATH_ATTACKS) * 5);
+		draw_stat_percent(_ctx.get_string("CHARACTER_BA"), character->abilities().at(RESISTANCE_VS_BREATH_ATTACKS) * 5);
 
 		ImGui::TableNextColumn();
-		draw_stat_percent("Rec / Sleep", character->abilities().at(RECOVER_FROM_SLEEP) * 5);
+		draw_stat_percent(_ctx.get_string("CHARACTER_SL"), character->abilities().at(RECOVER_FROM_SLEEP) * 5);
 
 		ImGui::TableNextColumn();
-		draw_stat_percent("vs Gas Trap", character->abilities().at(RESISTANCE_VS_POISON_GAS_TRAP) * 5);
+		draw_stat_percent(_ctx.get_string("CHARACTER_PG"), character->abilities().at(RESISTANCE_VS_POISON_GAS_TRAP) * 5);
 
 		ImGui::TableNextColumn();
-		draw_stat_percent("Rec / Fear", character->abilities().at(RECOVER_FROM_FEAR) * 5);
+		draw_stat_percent(_ctx.get_string("CHARACTER_RF"), character->abilities().at(RECOVER_FROM_FEAR) * 5);
 
 		ImGui::TableNextColumn();
-		draw_stat_percent("vs Spell Trap", character->abilities().at(RESISTANCE_VS_MAGE_PRIEST_TRAP) * 5);
+		draw_stat_percent(_ctx.get_string("CHARACTER_MT"), character->abilities().at(RESISTANCE_VS_MAGE_PRIEST_TRAP) * 5);
 
 		ImGui::TableNextColumn();
-		draw_stat_percent("vs Silence", character->abilities().at(RESISTANCE_VS_SILENCE) * 5);
+		draw_stat_percent(_ctx.get_string("CHARACTER_SI"), character->abilities().at(RESISTANCE_VS_SILENCE) * 5);
 	}
 }
 

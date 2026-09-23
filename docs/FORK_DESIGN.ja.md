@@ -199,6 +199,9 @@ cmake --build build --parallel
 - クラス名、種族名、属性名、呪文名はローマ字のまま（旧フォークの慣例を踏襲）。
 - `strings.json` と `strings.ja.json` のキー集合が一致することを検査する簡単な
   スクリプトを `scripts/` に置く（Python）。
+- 原文変更 26 キーと新規 156 キーは訳案を作成し、
+  `docs/ja-translation-review.md` に旧訳・原文・訳案を並べてレビューする。
+  日本語画面での見え方はフォント対応後に確認する。
 
 ### 5.2 UI ラベルの文字列キー化（`feature/ja-strings` に含める）
 
@@ -320,8 +323,6 @@ language = en
 
 ## 7. 未決事項
 
-- 新規翻訳 156 キーと見直し 26 キーの翻訳作業の進め方（機械翻訳の下訳を使うか、
-  手作業か）。
 - 配布用 Release ビルドの整備。CMakeLists.txt が Debug 固定のため、フォーク側で
   `CMAKE_BUILD_TYPE` を外すか、upstream に提案するか。配布時には Release ビルド用と
   Inno Setup インストーラー作成用の 2 種類のスクリプトを用意する。後者の `-Sign`

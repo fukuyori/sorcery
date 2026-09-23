@@ -32,11 +32,16 @@
 #include "types/config.hpp"			  // for Config
 #include <SDL.h>					  // for SDL_INIT_AUDIO, SDL_Init
 #include <SDL_error.h>				  // for SDL_GetError
+#include <algorithm>
+#include <cctype>
+#include <cstdio>
 #include <ctime>					  // for gmtime, strftime
 #include <filesystem>				  // for path
 #include <format>					  // for format
 #include <iterator>					  // for size, data
 #include <print>					  // for println
+#include <ranges>
+#include <string>
 
 Sorcery::System::System(int argc __attribute__((unused)), char **argv __attribute__((unused))) {
 
@@ -56,6 +61,13 @@ Sorcery::System::System(int argc __attribute__((unused)), char **argv __attribut
 		_settings->LoadFile(config_file.c_str());
 
 		config = std::make_unique<Config>(_settings.get(), files->get(CONFIG_FILE));
+		auto language{config->get("Localization", "language")};
+		std::ranges::transform(language, language.begin(), [](unsigned char ch) { return std::tolower(ch); });
+		if (language == "ja" || language == "ja-jp") {
+			const auto overlay{files->get(STRINGS_JA_FILE)};
+			if (!strings->load_overlay(overlay))
+				std::println(stderr, "Unable to load Japanese strings from {}. Using English strings.", overlay.string());
+		}
 		random = std::make_unique<Random>();
 		animation = std::make_unique<Animation>(random.get());
 		audio = std::make_unique<AudioPlayer>(files.get());

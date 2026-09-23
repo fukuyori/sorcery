@@ -38,11 +38,13 @@ class StringStore {
 
 		auto get(const std::string_view key) const -> std::string;
 		auto reload() -> void;
+		auto load_overlay(const std::filesystem::path &filename) -> bool;
 
 	private:
-		auto _load() -> bool;
+		auto _load_file(const std::filesystem::path &filename, bool clear_existing) -> bool;
 
 		std::filesystem::path _filename;
+		std::filesystem::path _overlay_filename;
 		std::map<std::string, std::string, std::less<>> _strings;
 		bool _loaded;
 };
