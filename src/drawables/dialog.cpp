@@ -31,6 +31,7 @@
 #include "types/component.hpp"		// for Component
 #include "types/enum.hpp"			// for DialogType, DialogType::CONFIRM
 #include <imgui_sugar.hpp>			// for set_StyleVar, BooleanGuard, set_...
+#include <algorithm>
 #include <memory>					// for unique_ptr
 #include <optional>					// for optional
 #include <string>					// for basic_string
@@ -63,13 +64,19 @@ auto Sorcery::Dialog::display() -> void {
 	const auto ok_lbl{_ctx.get_string("DIALOG_OK")};
 
 	const auto rounding{_ctx.ui->frame_rd};
-	const auto grid{_ctx.ui->metrics->grid_sz()};
+	const auto grid{static_cast<float>(_ctx.ui->metrics->grid_sz())};
 
-	set_Font(_ctx.ui->fonts->get_current_font(_component->font).value(), _ctx.ui->metrics->font_sz());
+	set_Font(_ctx.ui->fonts->get_current_font(_component->font).value(),
+			 _ctx.ui->metrics->font_sz() * _component->get_float("font_scale", 1.0f));
 
 	const auto text{_ctx.get_string(_component->string_key)};
-	const auto width{ImGui::CalcTextSize(text.c_str()).x + (grid * 4.0f)};
-	const auto height{_component->h * grid};
+	const ImVec2 btn_size{ImGui::GetFontSize() * 7.0f, 0.0f};
+	const auto button_width{_type == Enums::Layout::DialogType::CONFIRM ? (btn_size.x * 2.0f) + (grid * 6.0f)
+																		  : btn_size.x + (grid * 4.0f)};
+	const auto width{std::max(ImGui::CalcTextSize(text.c_str()).x + (grid * 4.0f), button_width)};
+	const auto text_size{ImGui::CalcTextSize(text.c_str(), nullptr, false, width - (grid * 4.0f))};
+	const auto button_y{std::max(grid * 4.0f, (grid * 3.0f) + text_size.y)};
+	const auto height{std::max(_component->h * grid, button_y + ImGui::GetFrameHeight() + (grid * 2.0f))};
 	const auto centre{ImGui::GetMainViewport()->GetCenter()};
 
 	ImGui::SetNextWindowPos(centre, ImGuiCond_Always, ImVec2{0.5f, 0.5f});
@@ -101,11 +108,11 @@ auto Sorcery::Dialog::display() -> void {
 			ImVec4{_ctx.ui->ui_bg_colour.x, _ctx.ui->ui_bg_colour.y, _ctx.ui->ui_bg_colour.z, _ctx.animation->fade},
 			rounding);
 
-		ImGui::SetCursorPos(ImVec2{grid * 2.0f, grid * 2.0f});
-
-		ImGui::TextWrapped("%s", text.c_str());
-
-		const ImVec2 btn_size{ImGui::GetFontSize() * 7.0f, 0.0f};
+		const auto text_x{std::max(grid * 2.0f, (width - text_size.x) / 2.0f)};
+		ImGui::SetCursorPos(ImVec2{text_x, grid * 2.0f});
+		ImGui::PushTextWrapPos(width - (grid * 2.0f));
+		ImGui::TextUnformatted(text.c_str());
+		ImGui::PopTextWrapPos();
 
 		const auto button_centre{width / 2.0f};
 
@@ -113,7 +120,7 @@ auto Sorcery::Dialog::display() -> void {
 
 		if (_type == CONFIRM) {
 
-			ImGui::SetCursorPos(ImVec2{button_centre - (btn_size.x + grid), grid * 4.0f});
+			ImGui::SetCursorPos(ImVec2{button_centre - (btn_size.x + grid), button_y});
 
 			if (ImGui::Button(yes_lbl.c_str(), btn_size)) {
 
@@ -121,7 +128,7 @@ auto Sorcery::Dialog::display() -> void {
 				ImGui::CloseCurrentPopup();
 			}
 
-			ImGui::SetCursorPos(ImVec2{button_centre + grid, grid * 4.0f});
+			ImGui::SetCursorPos(ImVec2{button_centre + grid, button_y});
 
 			if (ImGui::Button(no_lbl.c_str(), btn_size)) {
 
@@ -131,7 +138,7 @@ auto Sorcery::Dialog::display() -> void {
 
 		} else if (_type == OK) {
 
-			ImGui::SetCursorPos(ImVec2{button_centre - (btn_size.x / 2.0f), grid * 4.0f});
+			ImGui::SetCursorPos(ImVec2{button_centre - (btn_size.x / 2.0f), button_y});
 
 			if (ImGui::Button(ok_lbl.c_str(), btn_size)) {
 

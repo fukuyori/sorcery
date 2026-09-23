@@ -155,7 +155,8 @@ class UI {
 		auto draw_menu(Component *component) -> void;
 		auto draw_menu(const std::string name, const ImColor sel_colour, const ImVec2 pos, const ImVec2 sz,
 					   const Enums::Layout::Font font, std::vector<std::string> &items, std::vector<int> &data,
-					   const bool reorder, const bool across = false, const bool numeric_shortcuts = false) -> void;
+					   const bool reorder, const bool across = false, const bool numeric_shortcuts = false,
+					   const float font_scale = 1.0f) -> void;
 		auto draw_paragraph(Component *component) -> void;
 		auto draw_stepper(Component *component, const std::string &name, int &value) -> void;
 		auto draw_text(Component *component) -> void;

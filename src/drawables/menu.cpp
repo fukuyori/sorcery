@@ -76,12 +76,16 @@ auto Sorcery::Menu::draw() -> void {
 	with_Window(WINDOW_LAYER_MENUS, nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoTitleBar) {
 
 		const auto col{_ctx.ui->get_hl_colour(_ctx.animation->lerp)};
-		set_Font(_ctx.ui->fonts->get_current_font(Enums::Layout::Font::MONOSPACE).value(), _ctx.ui->metrics->font_sz());
+		const auto font_scale{_component->get_float("font_scale", 1.0f)};
+		const auto spacing_y{_component->get_float("item_spacing_y", ImGui::GetStyle().ItemSpacing.y)};
+		set_StyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ImGui::GetStyle().ItemSpacing.x, spacing_y});
+		set_Font(_ctx.ui->fonts->get_current_font(Enums::Layout::Font::MONOSPACE).value(),
+				 _ctx.ui->metrics->font_sz() * font_scale);
 		const auto sz{ImVec2{static_cast<float>(_width * _ctx.ui->metrics->font_sz()),
 							 static_cast<float>((_height * ImGui::GetTextLineHeightWithSpacing()) + 2)}};
 
 		// Note that _pos is in grid units whereas sz is in pixels!
-		_ctx.ui->draw_menu(_name, col, _pos, sz, _font, _items, _data, _reorder, _across, _numeric_input);
+		_ctx.ui->draw_menu(_name, col, _pos, sz, _font, _items, _data, _reorder, _across, _numeric_input, font_scale);
 
 		// Handle SpecialEvents such as Reordering Party Menu
 		if (_ctx.controller->has_flag("party_order_changed")) {
