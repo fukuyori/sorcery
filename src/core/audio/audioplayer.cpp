@@ -52,9 +52,10 @@ Sorcery::AudioPlayer::AudioPlayer(FileStore *files)
 
 	_device = SDL_OpenAudioDevice(nullptr, 0, &want, &_spec, 0);
 
+	// Without an audio device the game continues silently.
 	if (!_device) {
 		std::cerr << "SDL audio error: " << SDL_GetError() << "\n";
-		throw std::runtime_error("Failed to open audio device");
+		return;
 	}
 
 	SDL_PauseAudioDevice(_device, 1);
@@ -339,6 +340,10 @@ auto Sorcery::AudioPlayer::_finish_fade_out() -> void {
 /// @param track
 /// @return
 auto Sorcery::AudioPlayer::set_track(const Enums::Audio::Track track) -> void {
+
+	// No audio device: nothing can be played.
+	if (!_device)
+		return;
 
 	// We already want this track.
 	if (track == _requested_track)
