@@ -2,7 +2,8 @@
 
 このリポジトリは [Dave Moore 氏の Sorcery](https://github.com/davemoore22/sorcery)
 の Alpha #1 を土台にしたフォークです。日本語の文字列とフォントを追加しています。
-ゲームは開発中です。初期設定は英語で、日本語は設定ファイルから選択できます。
+ゲームは開発中です。インストール版は初回起動から日本語で表示します。
+ポータブル版の初期設定は英語で、日本語は設定ファイルから選択できます。
 
 ## upstream からの変更
 
@@ -39,11 +40,18 @@ language = ja
 `build/dist/cfg/config.ini` に再コピーされます。設定をビルド後も維持する
 場合は、ソース側の `cfg/config.ini` を編集してください。
 
+インストーラーで導入した場合、設定変更なしで日本語表示します。
+言語やフォントを変更する場合は
+`%LOCALAPPDATA%\Sorcery-JA\cfg\config.ini` を編集してください。
+設定とセーブデータは Windows ユーザーごとに分かれます。
+
 同梱フォントで日本語のタイトル画面と終了確認を目視確認しました。
 その他の画面は今後確認します。
 
 Windows のビルド環境と手順は [doc/COMPILE.md](doc/COMPILE.md) を参照してください。
 このフォークは MSYS2 UCRT64 / GCC を使用します。
+Release ビルドとインストーラーの作成方法は
+[Windows 配布手順](docs/windows-release.md)を参照してください。
 
 ## upstream とライセンス
 

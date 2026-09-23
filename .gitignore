@@ -37,6 +37,7 @@ _deps
 # Binaries
 bin/*
 build/*
+build-release/
 build/dist/*
 dist/*
 obj/*
