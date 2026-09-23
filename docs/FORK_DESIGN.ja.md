@@ -256,24 +256,33 @@ cmake --build build --parallel
 - `.ttc` を走査対象に加える。
 - `get_font_by_name` を大文字小文字無視にする（FreeType が `M+ 2m bold` のように
   小文字のスタイル名を返すフォントがあるため）。旧フォークの修正を移植。
-- 日本語グリフ: まず現行の動的方式で範囲指定なしに日本語が出るかを確認する。
-  出ない場合は、取得した ImGui の版で使えるグリフ指定方法を調べて対応する。
+- 日本語グリフは現行の動的方式で表示できることを M+ フォントと日本語タイトル画面で
+  確認済み。ImGui 1.92 ではグリフ範囲指定は旧方式向けのため追加しない。
 - `[Font]` に任意キー `rasterizer_multiply`（疑似ボールド）と
   `glyph_extra_advance_x`（字間）を移植する。
-- 日本語フォントは M+ FONTS（SIL OFL 1.1）を `dat/fonts/` に置く前提。同梱は
-  せず利用者が配置する（旧フォークの方針を踏襲）。ライセンス全文
-  `dat/fonts/OFL-mplus.txt` を同梱する。
+- Noto Sans JP のウェイト 500 から生成した `Sorcery JP Sans Medium` を
+  `dat/fonts/` に同梱する。生成方法とライセンスは `docs/ja-font.md` に記録する。
+  このフォントで日本語タイトル画面と終了確認を表示できることを確認した。
+- M+ FONTS（SIL OFL 1.1）は任意の代替フォントとし、利用者が配置する。
+  ライセンス全文 `dat/fonts/OFL-mplus.txt` を同梱する。
 - `cfg/config.ini` に日本語用設定をコメントアウトで記載する:
 
 ```ini
 [Font]
-; 日本語表示用 (dat/fonts/ に mplus-*.ttf を配置した場合):
+; 日本語表示用 (同梱フォント):
+; monospace = Sorcery JP Sans Medium
+; proportional = Sorcery JP Sans Medium
+; text = Sorcery JP Sans Medium
+; M+ フォントを別途配置する場合:
 ; monospace = M+ 2m Bold
 ; proportional = M+ 2p Bold
 ; text = M+ 1p Regular
 monospace = Wizardry 5 DOS Regular
 proportional = Marcellus Regular
 text = ProggyVector Regular
+; 省略時は ImGui の既定値 (1.0 / 0.0):
+; rasterizer_multiply = 1.0
+; glyph_extra_advance_x = 0.0
 
 [Localization]
 ; 日本語表示用:
@@ -319,7 +328,7 @@ language = en
 | 順 | ブランチ | 内容 | 依存 |
 |---|---|---|---|
 | 1 | `feature/ja-strings` | オーバーレイ機構、config、`strings.ja.json`（883 + 26 見直し + 156 新規） | なし |
-| 2 | `feature/ja-fonts` | `.ttc`、大文字小文字無視、グリフ範囲、OFL、config コメント | なし |
+| 2 | `feature/ja-fonts` | `.ttc`、大文字小文字無視、日本語グリフ確認、OFL、config コメント | なし |
 | 3 | `feature/ja-menu-align` | 中央揃えの `SelectableTextAlign` 化 | 1（日本語で検証するため） |
 | 4 | `feature/ja-docs` | README、README.ja、CHANGELOG | 1〜3 |
 

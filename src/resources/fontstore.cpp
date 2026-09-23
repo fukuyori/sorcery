@@ -21,6 +21,7 @@
 // the resulting work.
 
 #include "resources/fontstore.hpp"
+#include "core/context.hpp"      // for Context
 #include "resources/define.hpp" // for DATA_DIR
 #include <algorithm>			// for __lexicographical_compare_fn, __sort_fn
 #include <cctype>				// for tolower
@@ -39,8 +40,12 @@ Sorcery::FontStore::FontStore(Context &ctx, ImGuiIO *io)
 	  _io(io) {
 
 	FT_Init_FreeType(&_ft);
+	if (const auto multiply{_ctx.get_config("Font", "rasterizer_multiply")}; !multiply.empty())
+		_rasterizer_multiply = std::stof(multiply);
+	if (const auto advance{_ctx.get_config("Font", "glyph_extra_advance_x")}; !advance.empty())
+		_glyph_extra_advance_x = std::stof(advance);
 
-	// San the data directory for TTF fonts
+	// Scan the data directory for TrueType fonts and collections.
 	const std::filesystem::path file_path = std::filesystem::path{DATA_DIR} / FONT_DIR;
 	scan_and_load(file_path.string());
 	_sort_fonts_by_name();
@@ -59,8 +64,14 @@ auto Sorcery::FontStore::_get_fonts() const -> const std::vector<FontInfo> & {
 
 auto Sorcery::FontStore::get_font_by_name(const std::string &name) const -> std::optional<ImFont *> {
 
+	const auto equals_ignore_case{[](std::string_view lhs, std::string_view rhs) {
+		return std::ranges::equal(lhs, rhs, [](unsigned char a, unsigned char b) {
+			return std::tolower(a) == std::tolower(b);
+		});
+	}};
+
 	for (const auto &f : fonts)
-		if (f.name == name)
+		if (equals_ignore_case(f.name, name))
 			return f.font;
 	return std::nullopt;
 }
@@ -94,7 +105,7 @@ auto Sorcery::FontStore::scan_and_load(const std::string &directory) -> void {
 		else
 			font_type = MONOSPACE;
 
-		if (ext == ".ttf" || ext == ".TTF") {
+		if (ext == ".ttf" || ext == ".TTF" || ext == ".ttc" || ext == ".TTC") {
 			const auto font_path{entry.path().string()};
 			if (_is_valid_ttf(font_path)) {
 				auto mono{_is_monospace_ttf(font_path)};
@@ -135,6 +146,8 @@ auto Sorcery::FontStore::_load_font(const std::string &path, bool is_monospace, 
 	config.OversampleH = 3;
 	config.OversampleV = 3;
 	config.PixelSnapH = false;
+	config.RasterizerMultiply = _rasterizer_multiply;
+	config.GlyphExtraAdvanceX = _glyph_extra_advance_x;
 
 	// Make the font available to ImGui at different sizes by setting the size
 	// to 0.0f and using ImGui::SetFontScale() when rendering text.
