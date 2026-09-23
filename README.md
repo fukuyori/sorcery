@@ -1,3 +1,54 @@
+# Sorcery — Windows and Japanese fork
+
+This fork of [Dave Moore's Sorcery](https://github.com/davemoore22/sorcery) adds
+Japanese text and a bundled Japanese font to the upstream Alpha #1 codebase.
+The game is still under development. This repository's default configuration
+uses English; Japanese can be selected in `config.ini`.
+
+Japanese guide: [README.ja.md](README.ja.md).
+
+## Changes from upstream
+
+- Japanese string overlay and translations. If the Japanese data cannot be
+  loaded, the game reports the error and continues with English strings.
+- A bundled `Sorcery JP Sans Medium` font derived from Noto Sans JP, with its
+  [license and regeneration instructions](docs/ja-font.md).
+- Japanese menu alignment, title screen text sizing, and confirmation dialog
+  sizing.
+- Windows GUI executable, which starts without opening a console window.
+- Windows build fixes for save directories and runtime dependency copying.
+
+The [fork design](docs/FORK_DESIGN.ja.md) records the porting decisions and
+remaining work. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+
+## Japanese display setup
+
+After building, edit `build/dist/cfg/config.ini` and set:
+
+```ini
+[Font]
+monospace = Sorcery JP Sans Medium
+proportional = Sorcery JP Sans Medium
+text = Sorcery JP Sans Medium
+
+[Localization]
+language = ja
+```
+
+The font and `dat/strings.ja.json` are included in the build output. Start
+`build/dist/sorcery.exe` with `build/dist` as its working directory. The
+post-build copy overwrites `build/dist/cfg/config.ini` when the executable is
+relinked; edit `cfg/config.ini` in the source tree if you want the choice to
+persist across builds. The bundled font has been visually checked on the
+Japanese title screen and exit confirmation; other screens still need review.
+
+For Windows build dependencies and commands, see [doc/COMPILE.md](doc/COMPILE.md).
+This fork uses the MSYS2 UCRT64 / GCC toolchain described there.
+
+---
+
+## Upstream README (unchanged)
+
 # Sorcery
 
 An open source remake/remaster of the classic CRPG Wizardry, Proving Grounds of the Mad Overlord. Currently under heavy development with an initial release around the end of 2026 (**Alpha#1 is now available for download, see the Releases sidebar!**) Developed using ImGui/SDL2/OpenGL/C++. Is available on both Linux (Debian/Ubuntu) and Windows (64-bit). OpenGL 3.3 and 2 Gb of System Memory, and 512 MB (currently) of Video Memory will be required to run.
