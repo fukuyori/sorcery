@@ -298,29 +298,27 @@ auto Sorcery::MenuBuilder::_load_sick_characters(std::vector<std::string> &items
 	}
 }
 
-auto Sorcery::MenuBuilder::_load_bestiary_menu(unsigned int width, std::vector<std::string> &items) -> void {
+auto Sorcery::MenuBuilder::_load_bestiary_menu([[maybe_unused]] unsigned int width, std::vector<std::string> &items) -> void {
 
 	for (const auto &monster : _ctx.resources->monsters->get_all_types()) {
 
 		if (monster.get_type_id() > Enums::Monsters::TypeID::WERDNA)
 			continue;
 
-		const auto padded{std::format("{:^{}}", monster.get_known_name(), width)};
-
-		items.emplace_back(std::format("{}##{}", padded, std::to_underlying(monster.get_type_id())));
+		items.emplace_back(std::format("{}##{}", monster.get_known_name(), std::to_underlying(monster.get_type_id())));
 	}
 
-	items.emplace_back(std::format("{:^{}}", _ctx.get_string("BESTIARY_RETURN"), width));
+	items.emplace_back(_ctx.get_string("BESTIARY_RETURN"));
 }
 
-auto Sorcery::MenuBuilder::_load_spellbook_menu(unsigned int width, std::vector<std::string> &items) -> void {
+auto Sorcery::MenuBuilder::_load_spellbook_menu([[maybe_unused]] unsigned int width, std::vector<std::string> &items) -> void {
 
 	for (const auto &spell : _ctx.resources->spells->get_all()) {
 
-		items.emplace_back(std::format("{:^{}}", spell.name, width));
+		items.emplace_back(spell.name);
 	}
 
-	items.emplace_back(std::format("{:^{}}", _ctx.get_string("SPELLBOOK_RETURN"), width));
+	items.emplace_back(_ctx.get_string("SPELLBOOK_RETURN"));
 }
 
 auto Sorcery::MenuBuilder::_load_buy_menu(unsigned int width, std::vector<std::string> &items, std::vector<int> &data)
@@ -347,19 +345,17 @@ auto Sorcery::MenuBuilder::_load_buy_menu(unsigned int width, std::vector<std::s
 	}
 }
 
-auto Sorcery::MenuBuilder::_load_museum_menu(unsigned int width, std::vector<std::string> &items) -> void {
+auto Sorcery::MenuBuilder::_load_museum_menu([[maybe_unused]] unsigned int width, std::vector<std::string> &items) -> void {
 
 	for (const auto &item_type : _ctx.resources->items->get_all_types()) {
 
 		if (item_type.get_type_id() == Enums::Items::TypeID::BROKEN_ITEM)
 			continue;
 
-		const auto padded{std::format("{:^{}}", item_type.get_known_name(), width)};
-
-		items.emplace_back(std::format("{}##{}", padded, std::to_underlying(item_type.get_type_id())));
+		items.emplace_back(std::format("{}##{}", item_type.get_known_name(), std::to_underlying(item_type.get_type_id())));
 	}
 
-	items.emplace_back(std::format("{:^{}}", _ctx.get_string("MUSEUM_RETURN"), width));
+	items.emplace_back(_ctx.get_string("MUSEUM_RETURN"));
 }
 
 auto Sorcery::MenuBuilder::build(const std::string &menu_name, unsigned int width, std::vector<std::string> &items,
@@ -475,7 +471,7 @@ auto Sorcery::MenuBuilder::build(const std::string &menu_name, unsigned int widt
 		_load_fixed_menu(menu_name, width, items);
 }
 
-auto Sorcery::MenuBuilder::_load_fixed_menu(const std::string &menu_name, unsigned int width,
+auto Sorcery::MenuBuilder::_load_fixed_menu(const std::string &menu_name, [[maybe_unused]] unsigned int width,
 											std::vector<std::string> &items) -> void {
 
 	assert(items.size() < 1000);
@@ -485,7 +481,7 @@ auto Sorcery::MenuBuilder::_load_fixed_menu(const std::string &menu_name, unsign
 		return;
 
 	for (const auto &key : it->second) {
-		items.emplace_back(std::format("{:^{}}", _ctx.get_string(key), width));
+		items.emplace_back(_ctx.get_string(key));
 	}
 }
 

@@ -2033,7 +2033,8 @@
 					"justification": "centre",
 					"type": "text",
 					"priority": "5",
-					"drawmode": "automatic"
+					"drawmode": "automatic",
+					"data": [{ "font_scale": "1.2" }]
 				},
 				{
 					"name": "main_menu",
@@ -2053,6 +2054,8 @@
 						{
 							"width": "38",
 							"height": "8",
+							"font_scale": "1.2",
+							"item_spacing_y": "0",
 							"highlight": "0x6060c8",
 							"numeric_input": "true"
 						}
@@ -2070,7 +2073,8 @@
 					"drawmode": "manual",
 					"alpha": "1.0",
 					"colour": "0xffffff",
-					"bg_colour": "0x102030ff"
+					"bg_colour": "0x102030ff",
+					"data": [{ "font_scale": "1.2" }]
 				},
 				{
 					"name": "dialog_leave",

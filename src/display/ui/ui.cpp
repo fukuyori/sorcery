@@ -1457,7 +1457,8 @@ auto Sorcery::UI::draw_text(Component *component) -> void {
 
 		// Need to push font first before calculating size else it will
 		// assume monospace font size!
-		set_Font(fonts->get_current_font(component->font).value(), metrics->font_sz());
+		set_Font(fonts->get_current_font(component->font).value(),
+				 metrics->font_sz() * component->get_float("font_scale", 1.0f));
 
 		const auto x{std::invoke([&] {
 			if (component->x == -1) {
@@ -2738,7 +2739,8 @@ auto Sorcery::UI::_activate_menu_item(const std::string_view name, const int sel
 
 auto Sorcery::UI::draw_menu(const std::string name, const ImColor sel_color, const ImVec2 pos, const ImVec2 sz,
 							const Enums::Layout::Font font, std::vector<std::string> &items, std::vector<int> &data,
-							const bool reorder, const bool across, [[maybe_unused]] const bool numeric_shortcuts)
+							const bool reorder, const bool across, [[maybe_unused]] const bool numeric_shortcuts,
+							const float font_scale)
 	-> void {
 
 	// Work out size and positon of the menu, and the display name (which is
@@ -2755,7 +2757,7 @@ auto Sorcery::UI::draw_menu(const std::string name, const ImColor sel_color, con
 	set_StyleColor(ImGuiCol_HeaderActive, ImVec4{sel_color});
 	set_StyleColor(ImGuiCol_HeaderHovered, ImVec4{sel_color});
 	UIStyle::set_faded_with_disabled(_ctx);
-	set_Font(fonts->get_current_font(font).value(), metrics->font_sz());
+	set_Font(fonts->get_current_font(font).value(), metrics->font_sz() * font_scale);
 
 	const ImVec2 menu_pos{x, y};
 	ImGui::SetCursorPos(menu_pos);
@@ -2816,12 +2818,15 @@ auto Sorcery::UI::draw_menu(const std::string name, const ImColor sel_color, con
 			if (disabled)
 				ImGui::BeginDisabled();
 
-			if (across)
+			// Dynamic rows have matching data entries and may contain aligned columns.
+			// Fixed choices appended after them are single labels.
+			const auto center_item{across || i >= data.size()};
+			if (center_item)
 				ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2{0.5f, 0.5f});
 
 			const auto clicked{ImGui::Selectable(display_item.c_str(), is_selected, flags, ImVec2{item_width, 0.0f})};
 
-			if (across)
+			if (center_item)
 				ImGui::PopStyleVar();
 
 			const auto keyed{key_selection && *key_selection == i};
