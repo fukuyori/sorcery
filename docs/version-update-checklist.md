@@ -7,7 +7,8 @@ upstream のバージョンとフォークのリリース番号を混同しな�
 
 - [ ] `CMakeLists.txt` の `project(sorcery VERSION ...)` を更新する。
 - [ ] 同じファイルの `SORCERY_BUILD_LABEL` をリリース表示に合わせる。
-  タイトル画面右下にはこのラベルとビルド日が表示される。
+  このラベルとビルド日は、起動時の読み込み画面とダンジョン画面の右下に
+  表示される（upstream と同じく、タイトル画面には表示しない）。
 - [ ] `inc/generated/version.hpp.in` が `PROJECT_VERSION`、
   `SORCERY_BUILD_LABEL`、`SORCERY_BUILD_DATE` を参照していることを確認する。
   通常はテンプレートの値を直接編集しない。
