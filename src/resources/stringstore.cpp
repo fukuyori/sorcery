@@ -24,45 +24,76 @@
 #include "resources/define.hpp"
 
 #include <fstream>
+#include <iostream>
 #include <json/reader.h>
 #include <json/value.h>
 #include <string>
 #include <string_view>
+#include <utility>
 
 Sorcery::StringStore::StringStore(const std::filesystem::path &filename)
 	: _filename{filename} {
 
 	// Load strings from file
-	_loaded = _load();
+	_loaded = _load_file(_filename, true);
 }
 
 auto Sorcery::StringStore::reload() -> void {
 
-	_loaded = _load();
+	_loaded = _load_file(_filename, true);
+	if (_loaded && !_overlay_filename.empty() && !_load_file(_overlay_filename, false))
+		std::cerr << "Unable to reload string overlay: " << _overlay_filename << '\n';
 }
 
-auto Sorcery::StringStore::_load() -> bool {
+auto Sorcery::StringStore::load_overlay(const std::filesystem::path &filename) -> bool {
 
-	_strings.clear();
-	_strings["NONE"] = STRINGS_NOT_LOADED;
+	_overlay_filename = filename;
+	return _loaded && _load_file(filename, false);
+}
 
-	std::ifstream file{_filename};
+auto Sorcery::StringStore::_load_file(const std::filesystem::path &filename, bool clear_existing) -> bool {
 
-	if (!file)
+	std::ifstream file{filename};
+
+	if (!file) {
+		if (clear_existing)
+			_strings.clear();
 		return false;
+	}
 
 	Json::CharReaderBuilder builder{};
 	Json::Value root{};
 	std::string errors{};
 
-	if (!Json::parseFromStream(builder, file, &root, &errors))
+	if (!Json::parseFromStream(builder, file, &root, &errors)) {
+		if (clear_existing)
+			_strings.clear();
 		return false;
+	}
 
-	if (!root.isObject())
+	if (!root.isObject()) {
+		if (clear_existing)
+			_strings.clear();
 		return false;
+	}
 
-	for (const auto &key : root.getMemberNames())
-		_strings[key] = root[key].asString();
+	std::map<std::string, std::string, std::less<>> entries;
+	for (const auto &key : root.getMemberNames()) {
+		if (!root[key].isString()) {
+			if (clear_existing)
+				_strings.clear();
+			return false;
+		}
+		entries[key] = root[key].asString();
+	}
+
+	if (clear_existing) {
+		_strings = std::move(entries);
+		_strings.try_emplace("NONE", STRINGS_NOT_LOADED);
+	} else {
+		for (auto &[key, value] : entries)
+			_strings.insert_or_assign(std::move(key), std::move(value));
+	}
 
 	return true;
 }
