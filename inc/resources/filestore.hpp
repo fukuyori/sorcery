@@ -61,10 +61,12 @@ class FileStore {
 			-> void;
 
 		[[nodiscard]] auto _get_exe_path() const -> std::filesystem::path;
+		[[nodiscard]] auto _root_for(std::string_view dir) const -> const std::filesystem::path &;
 
 		auto _validate_files() const -> void;
 
 		std::filesystem::path _base_path;
+		std::filesystem::path _user_data_path;
 		std::unordered_map<std::string, std::filesystem::path> _file_paths;
 		std::vector<std::filesystem::path> _required_files;
 		std::unordered_map<std::string, std::filesystem::path> _directory_paths;

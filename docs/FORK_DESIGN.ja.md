@@ -146,8 +146,8 @@ cmake --build build --parallel
 
 - MSYS2 の git-lfs は `mingw-w64-ucrt-x86_64-git-lfs`。ホストの Git for Windows に
   git-lfs があれば不要。
-- `CMAKE_BUILD_TYPE` は CMakeLists.txt で Debug 固定。exe は約 170 MB になる。
-  配布用の Release ビルドは未整備（7 章）。
+- 通常のビルドは Debug を既定とする。配布用 Release ビルドと Inno Setup
+  インストーラーは `docs/windows-release.md` のスクリプトで作成する。
 - ポストビルドでリポジトリの `cfg/`、`dat/` などが `build/dist/` に上書きコピー
   される。`build/dist/cfg/config.ini` を直接編集した場合はビルドのたびに戻るため、
   リポジトリ側の `cfg/config.ini` を編集するかバックアップを取る。
@@ -338,13 +338,6 @@ language = en
 
 ## 7. 未決事項
 
-- 配布用 Release ビルドの整備。CMakeLists.txt が Debug 固定のため、フォーク側で
-  `CMAKE_BUILD_TYPE` を外すか、upstream に提案するか。配布時には Release ビルド用と
-  Inno Setup インストーラー作成用の 2 種類のスクリプトを用意する。後者の `-Sign`
-  オプションは環境変数 `CODESIGN_CERT` を使い、実行ファイル、インストーラー、
-  アンインストーラーに電子署名する。
-- バージョン変更時に更新するファイルの一覧を
-  `docs/version-update-checklist.md` に用意する。
 - Issue #1、#2 の upstream への報告。
 - `Alpha_2` 系への追従時期。`Alpha_2_Spellcasting` は Game ライブラリの再構成を
   含むため、移植完了後に差分を確認して判断する。

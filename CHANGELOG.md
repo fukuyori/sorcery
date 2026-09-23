@@ -17,6 +17,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - TrueType collection scanning and optional font rasterization and spacing
   settings.
 - Japanese font setup and translation review documents.
+- Windows Release build and Inno Setup installer scripts, with optional signing.
 
 ### Changed
 
@@ -26,6 +27,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   confirmation dialog sizes.
 - Linked the Windows executable as a GUI application so starting it does not
   create a console window.
+- Stored settings and saves separately for each user in an all-users Windows
+  installation.
+- Set installed copies to Japanese by default and migrate only untouched
+  English defaults from earlier installer builds.
 
 ### Fixed
 

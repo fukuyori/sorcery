@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.22)
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_BUILD_TYPE Debug)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
+endif()
 project(sorcery VERSION 0.1.0)
 
 set(SORCERY_BUILD_LABEL "Alpha #1")
@@ -222,6 +224,7 @@ if(WIN32)
     # SDL2main provides WinMain and calls SDL_main from src/sorcery.cpp.
     # Use the GUI subsystem so launching the game does not open a console.
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+    target_link_libraries(${PROJECT_NAME} PRIVATE shell32)
 endif()
 
 

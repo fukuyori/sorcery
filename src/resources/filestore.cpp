@@ -25,11 +25,15 @@
 #include <limits.h> // for PATH_MAX
 #include <unistd.h> // for readlink
 #elif defined(_WIN32)
+#include <shlobj.h>
 #include <windows.h>
 #endif
 #include "core/debug.hpp"		// for DEBUG_LOGF, debug_logf
 #include "resources/define.hpp" // for DATA_DIR, GFX_DIR, SFX_DIR, SAVE_DIR
+#include <algorithm>			// for equal
 #include <array>				// for array
+#include <fstream>				// for ifstream
+#include <iterator>				// for istreambuf_iterator
 #include <sstream>				// for basic_ostringstream, basic_ostream
 #include <stdexcept>			// for runtime_error
 #include <sys/types.h>			// for ssize_t
@@ -43,6 +47,40 @@ Sorcery::FileStore::FileStore() {
 	if (_base_path.empty()) {
 		throw std::runtime_error{"Unable to determine the Sorcery executable directory."};
 	}
+
+#ifdef _WIN32
+	if (std::filesystem::exists(_base_path / "installed.flag")) {
+		PWSTR local_app_data = nullptr;
+		const HRESULT result{SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_CREATE, nullptr, &local_app_data)};
+		if (FAILED(result) || !local_app_data) {
+			CoTaskMemFree(local_app_data);
+			throw std::runtime_error{"Unable to determine the current user's LocalAppData directory."};
+		}
+		_user_data_path = std::filesystem::path{local_app_data} / "Sorcery-JA";
+		CoTaskMemFree(local_app_data);
+
+		std::filesystem::create_directories(_user_data_path / CONFIG_DIR);
+		std::filesystem::create_directories(_user_data_path / SAVE_DIR);
+		std::filesystem::create_directories(_user_data_path / SAVE_DIR / SAVE_CHARACTERS_DIR);
+		std::filesystem::create_directories(_user_data_path / SAVE_DIR / SAVE_STATES_DIR);
+		const auto user_config{_user_data_path / CONFIG_DIR / CONFIG_FILE};
+		const auto legacy_config{_base_path / CONFIG_DIR / "config.legacy-en.ini"};
+		if (std::filesystem::exists(user_config) && std::filesystem::exists(legacy_config)) {
+			std::ifstream current{user_config, std::ios::binary};
+			std::ifstream legacy{legacy_config, std::ios::binary};
+			if (current && legacy && std::equal(std::istreambuf_iterator<char>{current},
+										   std::istreambuf_iterator<char>{}, std::istreambuf_iterator<char>{legacy},
+										   std::istreambuf_iterator<char>{})) {
+				std::filesystem::copy_file(_base_path / CONFIG_DIR / CONFIG_FILE, user_config,
+									   std::filesystem::copy_options::overwrite_existing);
+			}
+		}
+		std::filesystem::copy_file(_base_path / CONFIG_DIR / CONFIG_FILE, _user_data_path / CONFIG_DIR / CONFIG_FILE,
+							   std::filesystem::copy_options::skip_existing);
+		std::filesystem::copy_file(_base_path / SAVE_DIR / SAVE_GAME_FILE,
+							   _user_data_path / SAVE_DIR / SAVE_GAME_FILE, std::filesystem::copy_options::skip_existing);
+	}
+#endif
 
 	_file_paths.clear();
 	_required_files.clear();
@@ -156,10 +194,16 @@ auto Sorcery::FileStore::get_base_path() const -> std::filesystem::path {
 	return _base_path;
 }
 
+auto Sorcery::FileStore::_root_for(const std::string_view dir) const -> const std::filesystem::path & {
+	if (!_user_data_path.empty() && (dir == CONFIG_DIR || dir == SAVE_DIR))
+		return _user_data_path;
+	return _base_path;
+}
+
 auto Sorcery::FileStore::_add_path(const std::string_view dir, const std::string_view file, const bool required)
 	-> void {
 
-	const std::filesystem::path file_path{_base_path / dir / file};
+	const std::filesystem::path file_path{_root_for(dir) / dir / file};
 
 	_file_paths.insert_or_assign(std::string{file}, file_path);
 
@@ -170,7 +214,7 @@ auto Sorcery::FileStore::_add_path(const std::string_view dir, const std::string
 auto Sorcery::FileStore::_add_directory(const std::string_view dir, const std::string_view sub_dir, const bool required)
 	-> void {
 
-	const std::filesystem::path dir_path{_base_path / dir / sub_dir};
+	const std::filesystem::path dir_path{_root_for(dir) / dir / sub_dir};
 	const std::string key{std::string{sub_dir}};
 
 	_directory_paths.insert_or_assign(std::string{key}, dir_path);
@@ -181,7 +225,7 @@ auto Sorcery::FileStore::_add_directory(const std::string_view dir, const std::s
 
 auto Sorcery::FileStore::_add_directory(const std::string_view dir, const bool required) -> void {
 
-	const std::filesystem::path dir_path{_base_path / dir};
+	const std::filesystem::path dir_path{_root_for(dir) / dir};
 
 	_directory_paths.insert_or_assign(std::string{dir}, dir_path);
 
@@ -192,7 +236,7 @@ auto Sorcery::FileStore::_add_directory(const std::string_view dir, const bool r
 auto Sorcery::FileStore::_add_path(const std::string_view dir, const std::string_view sub_dir,
 								   const std::string_view file, const bool required) -> void {
 
-	const std::filesystem::path file_path{_base_path / dir / sub_dir / file};
+	const std::filesystem::path file_path{_root_for(dir) / dir / sub_dir / file};
 
 	_file_paths.insert_or_assign(std::string{file}, file_path);
 

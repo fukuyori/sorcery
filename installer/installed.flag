@@ -1,0 +1,2 @@
+This file marks an all-users installation. Sorcery stores each user's settings
+and saves under %LOCALAPPDATA%\Sorcery-JA instead of the installation directory.

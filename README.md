@@ -2,8 +2,8 @@
 
 This fork of [Dave Moore's Sorcery](https://github.com/davemoore22/sorcery) adds
 Japanese text and a bundled Japanese font to the upstream Alpha #1 codebase.
-The game is still under development. This repository's default configuration
-uses English; Japanese can be selected in `config.ini`.
+The game is still under development. Installed copies start in Japanese.
+The portable build defaults to English; Japanese can be selected in `config.ini`.
 
 Japanese guide: [README.ja.md](README.ja.md).
 
@@ -42,8 +42,13 @@ relinked; edit `cfg/config.ini` in the source tree if you want the choice to
 persist across builds. The bundled font has been visually checked on the
 Japanese title screen and exit confirmation; other screens still need review.
 
+Installed copies display Japanese on first launch. To change the language or
+fonts, edit `%LOCALAPPDATA%\Sorcery-JA\cfg\config.ini`. Installed settings and
+saves are separate for each Windows user.
+
 For Windows build dependencies and commands, see [doc/COMPILE.md](doc/COMPILE.md).
 This fork uses the MSYS2 UCRT64 / GCC toolchain described there.
+Release and installer commands are in [docs/windows-release.md](docs/windows-release.md).
 
 ---
 
