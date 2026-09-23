@@ -2,10 +2,16 @@
 
 This fork of [Dave Moore's Sorcery](https://github.com/davemoore22/sorcery) adds
 Japanese text and a bundled Japanese font to the upstream Alpha #1 codebase.
-The game is still under development. Installed copies start in Japanese.
-The portable build defaults to English; Japanese can be selected in `config.ini`.
+The game is still under development. Both installed and portable builds start
+in Japanese; English can be selected in `config.ini`.
 
 Japanese guide: [README.ja.md](README.ja.md).
+
+Current fork release: **0.1.0-ja** ("Alpha #1 JA", based on upstream Alpha #1).
+This is an **alpha preview release**: the game is incomplete, and saves and
+settings may not carry over to later versions.
+The Windows installer is published on this fork's
+[Releases](https://github.com/fukuyori/sorcery/releases) page.
 
 ## Changes from upstream
 
@@ -21,30 +27,43 @@ Japanese guide: [README.ja.md](README.ja.md).
 The [fork design](docs/FORK_DESIGN.ja.md) records the porting decisions and
 remaining work. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
-## Japanese display setup
+## Language setup
 
-After building, edit `build/dist/cfg/config.ini` and set:
+The default `cfg/config.ini` uses the bundled Japanese font and
+`language = ja`. To display English, edit `build/dist/cfg/config.ini` and set:
 
 ```ini
 [Font]
-monospace = Sorcery JP Sans Medium
-proportional = Sorcery JP Sans Medium
-text = Sorcery JP Sans Medium
+monospace = Wizardry 5 DOS Regular
+proportional = Marcellus Regular
+text = ProggyVector Regular
 
 [Localization]
-language = ja
+language = en
 ```
 
 The font and `dat/strings.ja.json` are included in the build output. Start
 `build/dist/sorcery.exe` with `build/dist` as its working directory. The
 post-build copy overwrites `build/dist/cfg/config.ini` when the executable is
 relinked; edit `cfg/config.ini` in the source tree if you want the choice to
-persist across builds. The bundled font has been visually checked on the
+persist across builds.
+
+**Known issue:** `cfg/`, `dat/`, `gfx/` and the other data directories are
+copied to `dist/` only when the executable is relinked. A build after changing
+only data files reports `ninja: no work to do` and leaves the old data in
+`dist/`. Delete `dist/sorcery.exe` in the build directory (for example
+`build-release/dist/sorcery.exe`) before building to force the copy.
+
+The bundled font has been visually checked on the
 Japanese title screen and exit confirmation; other screens still need review.
 
 Installed copies display Japanese on first launch. To change the language or
 fonts, edit `%LOCALAPPDATA%\Sorcery-JA\cfg\config.ini`. Installed settings and
 saves are separate for each Windows user.
+
+To update an installed copy, uninstall the current version from Windows
+Settings before running the new installer. Settings and saves in
+`%LOCALAPPDATA%\Sorcery-JA` are kept by the uninstaller.
 
 For Windows build dependencies and commands, see [doc/COMPILE.md](doc/COMPILE.md).
 This fork uses the MSYS2 UCRT64 / GCC toolchain described there.

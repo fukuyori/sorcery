@@ -2,8 +2,16 @@
 
 このリポジトリは [Dave Moore 氏の Sorcery](https://github.com/davemoore22/sorcery)
 の Alpha #1 を土台にしたフォークです。日本語の文字列とフォントを追加しています。
-ゲームは開発中です。インストール版は初回起動から日本語で表示します。
-ポータブル版の初期設定は英語で、日本語は設定ファイルから選択できます。
+ゲームは開発中です。インストール版もポータブル版も初回起動から日本語で表示します。
+英語表示は設定ファイルから選択できます。
+
+## リリース状況
+
+現在のリリースは **0.1.0-ja**（表示ラベル「Alpha #1 JA」、upstream Alpha #1 が土台）です。
+これは**アルファ版のプレビューリリース**です。ゲームは未完成で、セーブデータや
+設定が今後のバージョンに引き継げない場合があります。
+Windows 用インストーラーはこのフォークの
+[Releases](https://github.com/fukuyori/sorcery/releases) ページで公開します。
 
 ## upstream からの変更
 
@@ -20,18 +28,19 @@
 移植の判断は[フォークの設計文書](docs/FORK_DESIGN.ja.md)、変更履歴は
 [CHANGELOG.md](CHANGELOG.md)に記録しています。
 
-## 日本語表示の設定
+## 表示言語の設定
 
-ビルド後、`build/dist/cfg/config.ini` を開き、次の値を指定します。
+既定の `cfg/config.ini` は同梱の日本語フォントと `language = ja` を使用します。
+英語で表示する場合は、ビルド後に `build/dist/cfg/config.ini` を開き、次の値を指定します。
 
 ```ini
 [Font]
-monospace = Sorcery JP Sans Medium
-proportional = Sorcery JP Sans Medium
-text = Sorcery JP Sans Medium
+monospace = Wizardry 5 DOS Regular
+proportional = Marcellus Regular
+text = ProggyVector Regular
 
 [Localization]
-language = ja
+language = en
 ```
 
 フォントと `dat/strings.ja.json` はビルド出力に含まれます。
@@ -40,10 +49,20 @@ language = ja
 `build/dist/cfg/config.ini` に再コピーされます。設定をビルド後も維持する
 場合は、ソース側の `cfg/config.ini` を編集してください。
 
+**既知の問題:** `cfg/`、`dat/`、`gfx/` などのデータは、実行ファイルを
+再リンクしたときだけ `dist/` にコピーされます。データだけを変更してビルドすると
+`ninja: no work to do` となり、`dist/` には古いデータが残ります。
+ビルドの前にビルドディレクトリの `dist/sorcery.exe`
+（例: `build-release/dist/sorcery.exe`）を削除して、コピーを実行させてください。
+
 インストーラーで導入した場合、設定変更なしで日本語表示します。
 言語やフォントを変更する場合は
 `%LOCALAPPDATA%\Sorcery-JA\cfg\config.ini` を編集してください。
 設定とセーブデータは Windows ユーザーごとに分かれます。
+
+アップデートするときは、毎回 Windows の設定から現在のバージョンを
+アンインストールしてから、新しいインストーラーを実行してください。
+`%LOCALAPPDATA%\Sorcery-JA` の設定とセーブデータはアンインストールしても残ります。
 
 同梱フォントで日本語のタイトル画面と終了確認を目視確認しました。
 その他の画面は今後確認します。

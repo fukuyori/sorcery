@@ -135,24 +135,15 @@ Copy-Item -Path (Join-Path $dist '*') -Destination $stage -Recurse -Force
 Copy-Item -LiteralPath (Join-Path $repo 'installer\installed.flag') -Destination $stage
 Require-File (Join-Path $stage 'sorcery.exe')
 
-# Installed builds start in Japanese. Keep the previous English default as a
-# reference so an untouched per-user config from an older installer can migrate.
+# The source config already defaults to Japanese. Ship the English default used
+# by earlier installer builds so an untouched per-user copy of it can migrate.
 $stagedConfig = Join-Path $stage 'cfg\config.ini'
-$legacyConfig = Join-Path $stage 'cfg\config.legacy-en.ini'
-Copy-Item -LiteralPath $stagedConfig -Destination $legacyConfig
 $configText = [IO.File]::ReadAllText($stagedConfig)
-foreach ($pair in @(
-    @('monospace = Wizardry 5 DOS Regular', 'monospace = Sorcery JP Sans Medium'),
-    @('proportional = Marcellus Regular', 'proportional = Sorcery JP Sans Medium'),
-    @('text = ProggyVector Regular', 'text = Sorcery JP Sans Medium'),
-    @('language = en', 'language = ja')
-)) {
-    if ([regex]::Matches($configText, [regex]::Escape($pair[0])).Count -ne 1) {
-        throw "Unexpected Release config default: $($pair[0])"
-    }
-    $configText = $configText.Replace($pair[0], $pair[1])
+if (-not [regex]::IsMatch($configText, '(?m)^language = ja\r?$')) {
+    throw "Release config does not default to Japanese: $stagedConfig"
 }
-[IO.File]::WriteAllText($stagedConfig, $configText, [Text.UTF8Encoding]::new($false))
+Copy-Item -LiteralPath (Join-Path $repo 'installer\config.legacy-en.ini') `
+    -Destination (Join-Path $stage 'cfg\config.legacy-en.ini')
 
 if ($Sign) {
     & $SignToolPath @signArgs (Join-Path $stage 'sorcery.exe')

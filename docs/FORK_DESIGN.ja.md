@@ -93,8 +93,8 @@ upstream には報告しない（7 章）。
 | `upstream-master` | `upstream/master` のミラー | 禁止。fast-forward のみ |
 | `fix/<name>` | upstream にも送れる修正。**`upstream-master` から分岐** | PR → `master` |
 | `feature/<name>` | フォーク固有の機能。`master` から分岐 | PR → `master` |
-| `sdl/imgui` | 旧主ブランチ。アーカイブ | 禁止 |
-| `upstream-sdl-imgui` | 旧 upstream 追跡。削除候補 | 禁止 |
+
+旧主ブランチ `sdl/imgui` と旧 upstream 追跡 `upstream-sdl-imgui` は 2026-09-24 に削除した。
 
 `fix/` を `upstream-master` から分岐させるのは、フォーク固有のコミットを含まない
 状態で修正を保つため。upstream に PR を出すかどうかは利用者が判断し、AI は出さない
@@ -208,8 +208,8 @@ cmake --build build --parallel
 
 - キャラクター詳細・サマリーの能力値ラベルは旧フォークで `CHARACTER_*` キー経由に
   変更していた。upstream の `src/display/ui/ui.cpp` で同等箇所を探して当て直す。
-  該当箇所はソース再編で移動しているため、旧差分（`git diff 94506135 sdl/imgui --
-  src/core/ui.cpp`）を参照しながら手作業で移植する。
+  該当箇所はソース再編で移動しているため、旧差分（`git diff 94506135 e4cdb382 --
+  src/core/ui.cpp`。`sdl/imgui` は削除済み）を参照しながら手作業で移植した。
 
 ### 5.3 メニューの中央揃え（`feature/ja-menu-align`）
 
@@ -266,29 +266,31 @@ cmake --build build --parallel
   このフォントで日本語タイトル画面と終了確認を表示できることを確認した。
 - M+ FONTS（SIL OFL 1.1）は任意の代替フォントとし、利用者が配置する。
   ライセンス全文 `dat/fonts/OFL-mplus.txt` を同梱する。
-- `cfg/config.ini` に日本語用設定をコメントアウトで記載する:
+- `cfg/config.ini` は日本語表示を既定とし、英語用設定をコメントアウトで記載する
+  （0.1.0-ja から。それ以前は英語が既定だった）:
 
 ```ini
 [Font]
 ; 日本語表示用 (同梱フォント):
-; monospace = Sorcery JP Sans Medium
-; proportional = Sorcery JP Sans Medium
-; text = Sorcery JP Sans Medium
+monospace = Sorcery JP Sans Medium
+proportional = Sorcery JP Sans Medium
+text = Sorcery JP Sans Medium
 ; M+ フォントを別途配置する場合:
 ; monospace = M+ 2m Bold
 ; proportional = M+ 2p Bold
 ; text = M+ 1p Regular
-monospace = Wizardry 5 DOS Regular
-proportional = Marcellus Regular
-text = ProggyVector Regular
+; 英語表示用:
+; monospace = Wizardry 5 DOS Regular
+; proportional = Marcellus Regular
+; text = ProggyVector Regular
 ; 省略時は ImGui の既定値 (1.0 / 0.0):
 ; rasterizer_multiply = 1.0
 ; glyph_extra_advance_x = 0.0
 
 [Localization]
-; 日本語表示用:
-; language = ja
-language = en
+; 英語表示用:
+; language = en
+language = ja
 ```
 
 ### 5.5 移植しないもの
