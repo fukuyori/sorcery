@@ -1,6 +1,6 @@
 # フォーク（Windows / 日本語版）の対応方針と設計
 
-最終更新: 2026-09-23
+最終更新: 2026-09-24
 
 このフォーク <https://github.com/fukuyori/sorcery> は
 <https://github.com/davemoore22/sorcery>（以下 upstream）を元に、Windows で動作する
@@ -79,7 +79,7 @@ MSVC を維持する案は、`meta.cpp` を magic_enum で置き換え、CMake �
 | #2 | `Win32RuntimeDependencies.cmake` の除外正規表現が `C:\WINDOWS\system32` の大文字に一致せず、システム DLL 246 個が `build/dist` にコピーされる | PR #3: 大文字小文字非依存の文字クラスに変更し、`CMP0207` を NEW に設定 |
 
 どちらも upstream の `master`、`Alpha_2`、`Alpha_2_Spellcasting` で未修正。
-upstream への報告は別途判断する。
+upstream には報告しない（7 章）。
 
 ---
 
@@ -89,7 +89,7 @@ upstream への報告は別途判断する。
 
 | ブランチ | 役割 | コミット |
 |---|---|---|
-| `master`（既定） | フォークの主ブランチ。`upstream-master` + フォークの変更 | PR 経由のみ |
+| `master`（既定） | フォークの主ブランチ。`upstream-master` + フォークの変更 | PR 経由のみ（ドキュメントのみの修正は直接コミット可） |
 | `upstream-master` | `upstream/master` のミラー | 禁止。fast-forward のみ |
 | `fix/<name>` | upstream にも送れる修正。**`upstream-master` から分岐** | PR → `master` |
 | `feature/<name>` | フォーク固有の機能。`master` から分岐 | PR → `master` |
@@ -97,7 +97,8 @@ upstream への報告は別途判断する。
 | `upstream-sdl-imgui` | 旧 upstream 追跡。削除候補 | 禁止 |
 
 `fix/` を `upstream-master` から分岐させるのは、フォーク固有のコミットを含まない
-状態で upstream に PR を出せるようにするため。
+状態で修正を保つため。upstream に PR を出すかどうかは利用者が判断し、AI は出さない
+（7 章）。
 
 ### 3.2 upstream 追従の手順
 
@@ -294,11 +295,11 @@ language = en
 
 | 旧フォークの変更 | 理由 |
 |---|---|
-| vcpkg.json、旧 scripts/build-windows.ps1、scripts/restore-ext.ps1 | MSYS2 方式に統一。配布用の新しいスクリプトは 7 章で別途整備する |
+| vcpkg.json、旧 scripts/build-windows.ps1、scripts/restore-ext.ps1 | MSYS2 方式に統一。配布用の新しいスクリプトは `docs/windows-release.md` を参照 |
 | MSVC 互換ヘッダ（macro.hpp、parse.hpp、json.hpp の変更） | GCC でビルドするため不要 |
 | `%APPDATA%\Sorcery\save.db3` への保存先変更 | upstream はセーブ方式を `sav/` 配下の JSON に変更済み |
 | `Chest` 型の骨組み | upstream に `inc/engine/chest.hpp` が実装済み |
-| `Game::give_item_to_party` | upstream の再構成後に必要性を再評価。Alpha_2_Spellcasting の Game ライブラリを確認してから判断 |
+| `Game::give_item_to_party` | upstream の再構成後に必要性を再評価。Game ライブラリの再構成が `upstream/master` に入った時点で判断 |
 | doc/WINDOWS.md、doc/LINUX.md | upstream の doc/COMPILE.md が両 OS を網羅 |
 | doc/WIZARDRY_CODE_REFERENCE_PLAN.md | 内容を確認し、有用なら `docs/` に移す（別 PR） |
 
@@ -336,8 +337,9 @@ language = en
 
 ---
 
-## 7. 未決事項
+## 7. upstream との関わり方
 
-- Issue #1、#2 の upstream への報告。
-- `Alpha_2` 系への追従時期。`Alpha_2_Spellcasting` は Game ライブラリの再構成を
-  含むため、移植完了後に差分を確認して判断する。
+- AI は upstream に Issue や PR を直接出さない。2.4 の Issue #1、#2 も報告しない。
+- フォークは `upstream/master` だけを追う。`Alpha_2`、`Alpha_2_Spellcasting` など
+  upstream のほかのブランチからは取り込まない。それらは upstream が自身の `master`
+  にマージし、フォークには 3.2 の手順で届く。
