@@ -1,13 +1,13 @@
 # Sorcery — Windows and Japanese fork
 
 This fork of [Dave Moore's Sorcery](https://github.com/davemoore22/sorcery) adds
-Japanese text and a bundled Japanese font to the upstream Alpha #1 codebase.
+Japanese text and a bundled Japanese font to the upstream Alpha #2 codebase.
 The game is still under development. Both installed and portable builds start
 in Japanese; English can be selected in `config.ini`.
 
 Japanese guide: [README.ja.md](README.ja.md).
 
-Current fork release: **0.1.0-ja** ("Alpha #1 JA", based on upstream Alpha #1).
+Current fork release: **0.2.0-ja** ("Alpha #2 JA", based on upstream Alpha #2).
 This is an **alpha preview release**: the game is incomplete, and saves and
 settings may not carry over to later versions.
 The Windows installer is published on this fork's
@@ -15,14 +15,20 @@ The Windows installer is published on this fork's
 
 ## Changes from upstream
 
-- Japanese string overlay and translations. If the Japanese data cannot be
-  loaded, the game reports the error and continues with English strings.
+- Japanese string overlay and translations, including the spellcasting,
+  context-sensitive help and teleport messages added in upstream Alpha #2.
+  If the Japanese data cannot be loaded, the game reports the error and
+  continues with English strings.
 - A bundled `Sorcery JP Sans Medium` font derived from Noto Sans JP, with its
   [license and regeneration instructions](docs/ja-font.md).
 - Japanese menu alignment, title screen text sizing, and confirmation dialog
   sizing.
 - Windows GUI executable, which starts without opening a console window.
-- Windows build fixes for save directories and runtime dependency copying.
+- Windows build fix for runtime dependency copying. (The fork's fix for
+  missing save directories was dropped in 0.2.0-ja because upstream Alpha #2
+  creates them.)
+- Starts without music instead of exiting when the audio device cannot be
+  opened.
 
 The [fork design](docs/FORK_DESIGN.ja.md) records the porting decisions and
 remaining work. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
@@ -42,11 +48,13 @@ text = ProggyVector Regular
 language = en
 ```
 
-The font and `dat/strings.ja.json` are included in the build output. Start
-`build/dist/sorcery.exe` with `build/dist` as its working directory. The
-post-build copy overwrites `build/dist/cfg/config.ini` when the executable is
-relinked; edit `cfg/config.ini` in the source tree if you want the choice to
-persist across builds.
+The font and `dat/strings.ja.json` are included in the build output. Data and
+fonts are found relative to the executable, so `build/dist/sorcery.exe` can be
+started from any working directory. The post-build copy overwrites
+`build/dist/cfg/config.ini` when the executable is relinked; edit
+`cfg/config.ini` in the source tree if you want the choice to persist across
+builds. Existing saves in `build/dist/sav` are kept; only missing seed files are
+copied.
 
 **Known issue:** `cfg/`, `dat/`, `gfx/` and the other data directories are
 copied to `dist/` only when the executable is relinked. A build after changing
@@ -54,8 +62,12 @@ only data files reports `ninja: no work to do` and leaves the old data in
 `dist/`. Delete `dist/sorcery.exe` in the build directory (for example
 `build-release/dist/sorcery.exe`) before building to force the copy.
 
-The bundled font has been visually checked on the
-Japanese title screen and exit confirmation; other screens still need review.
+The bundled font has been visually checked on the Japanese title screen and
+exit confirmation. For 0.2.0-ja the Japanese title screen has been checked;
+the help window, spellcasting screens and other screens still need review. The
+help window heading, the music volume slider in Options, the MALOR teleport
+dialog and the cheat tools window are hard-coded in English upstream and stay
+in English.
 
 Installed copies display Japanese on first launch. To change the language or
 fonts, edit `%LOCALAPPDATA%\Sorcery-JA\cfg\config.ini`. Installed settings and
@@ -75,7 +87,13 @@ Release and installer commands are in [docs/windows-release.md](docs/windows-rel
 
 # Sorcery
 
-An open source remake/remaster of the classic CRPG Wizardry, Proving Grounds of the Mad Overlord. Currently under heavy development with an initial release around the end of 2026 (**Alpha#1 is now available for download, see the Releases sidebar!**) Developed using ImGui/SDL2/OpenGL/C++. Is available on both Linux (Debian/Ubuntu) and Windows (64-bit). OpenGL 3.3 and 2 Gb of System Memory, and 512 MB (currently) of Video Memory will be required to run.
+Sorcery is an open-source remake/remaster of the classic CRPG **Wizardry: Proving Grounds of the Mad Overlord** by Dave Moore.
+
+The project is under active development and is built using **C++26, Dear ImGui, SDL2 and OpenGL**. Sorcery is mainly available on **Debian/Ubuntu Linux** and **64-bit Windows**; it also has experimental **MacOS** support.
+
+**Alpha #2 is available now from the Releases section. Alpha #3 is coming soon.**
+
+## Screenshots
 
 <table>
   <tr>
@@ -92,7 +110,7 @@ An open source remake/remaster of the classic CRPG Wizardry, Proving Grounds of 
     <td><img src="promo/screen9.png" width="150"></td>
     <td><img src="promo/screen10.png" width="150"></td>
   </tr>
-    <tr>
+  <tr>
     <td><img src="promo/screen11.png" width="150"></td>
     <td><img src="promo/screen12.png" width="150"></td>
     <td><img src="promo/screen13.png" width="150"></td>
@@ -113,91 +131,168 @@ An open source remake/remaster of the classic CRPG Wizardry, Proving Grounds of 
     <td><img src="promo/screen24.png" width="150"></td>
     <td><img src="promo/screen25.png" width="150"></td>
   </tr>
+  <tr>
+    <td><img src="promo/screen26.png" width="150"></td>
+    <td><img src="promo/screen27.png" width="150"></td>
+    <td><img src="promo/screen28.png" width="150"></td>
+    <td></td>
+    <td></td>
+  </tr>
 </table>
 
-See also some brief [gameplay videos](https://www.youtube.com/channel/UCEkmGGFyxu5vH6xAHej3Dag) on Youtube.
+Brief gameplay videos are also available on [YouTube](https://www.youtube.com/channel/UCEkmGGFyxu5vH6xAHej3Dag).
 
-## Progress Update 19th September 2026)
+## Current Status
 
-**Alpha #1 is out** (see the releases sidebar) for Windows and Linux (currently works on the latter via wine but a .deb/appimage will be provided soon).
+### Alpha #2 — Released 20th October 2026
 
-It contains the following functionality:
+Alpha #2 changes include:
 
-* ~~Load/Save/New Game~~ (DONE)
-* ~~Town/Castle Menus~~ (DONE)
-* ~~Character Creation~~ (DONE)
-* ~~Party/Expedition Management~~ (DONE)
-* ~~Maze Generation and Navigation~~ (DONE)
-* ~~Dungeon Features~~ (DONE)
-* ~~Automapping~~ (DONE)
-* ~~Keyboard/Mouse/Gamepad Control~~ (DONE)
-* ~~Gilgamesh's Tavern~~ (DONE)
-* ~~Adventurer's Inn~~ (DONE)
-* ~~Levelling up/Changing Class~~ (DONE)
-* ~~Temple/Healing/Resurrection~~ (DONE)
-* ~~Wipe Handling~~ (DONE)
-* ~~Dungeon Events~~ (DONE)
-* ~~Compendium~~ (DONE)
-* ~~Music~~ (DONE)
-* ~~Character Editing/Deleting/Legating~~ (DONE)
-* ~~Inventory and Item Manipulation~~ (DONE)
-* ~~Victory/End Game Handling~~ (DONE)
-* ~~Traps and Chests~~ (DONE)
-* ~~Quicksave/Quickload~~ (DONE)
-* ~~Boltac's Equipment Shop~~ (DONE)
-* ~~Windows Port~~ (DONE)
-* ~~Special Item Powers and Handling~~ (DONE)
+- Reduced required graphics memory to approximately **400 MB**.
+- Corrected fullscreen rendering.
+- Added a **music volume control**.
+- Added **context-sensitive help** using **F1**.
+- Expanded the **Cheat Menu** available through **F2**.
+- Implemented out-of-combat spellcasting for:
+  - **Divine spells**
+    - DIOS, DIAL, DIALMA, LATUMOFIS, MADI
+    - MILWA, LOMILWA, LATUMAPIC
+    - MAPORFIC, KANDI
+    - DI, KADORTO
+  - **Arcane spells**
+    - DUMAPIC, MALOR
+- The buff bar now displays the status of **MILWA/LOMILWA, LATUMAPIC and MAPORFIC**.
+- Darkness squares now extinguish any active light spell.
 
-Alpha #2 is planned to also contain the following:
+Thanks to Greg Evans for the following enhancements:
+  
+- Enhanced Menu Navigation.
+- Additional Save/Restore State Bug Fixes.
+- Compliation Support for MacOS added.
+- cTest Support.
 
-* **Magic and Combat** (DOING)
-* **Context-Sensitive-Help*** (DOING)
-* **Creatures, Combat, and NPCs** (DOING)
+### Alpha #1 — Released 19 September 2026
 
-Alpha #3 is planned to also contain the following:
+Alpha #1 is the first public release of Sorcery and contains the majority of the core game framework and non-combat systems.
 
-* Encounter Tables (TO DO)
-* Fixed Combats (TO DO)
-* Treasure Tables (TO DO)
-* SFX (TO DO)
-* Strict (Legacy) Mode (TO DO)
+Implemented functionality includes:
+
+- **Core game systems**
+  - New Game, Save and Load
+  - Quicksave and Quickload
+  - Keyboard, mouse and gamepad controls
+  - Linux/Windows support
+- **Characters and party management**
+  - Character creation
+  - Character editing, deleting and legating
+  - Party and expedition management
+  - Levelling up and changing class
+  - Healing and resurrection
+- **Town and services**
+  - Town and Castle menus
+  - Gilgamesh's Tavern
+  - Adventurer's Inn
+  - Temple
+  - Boltac's Equipment Shop
+- **Dungeon exploration**
+  - Maze generation and navigation
+  - Dungeon features and events
+  - Automapping
+  - Traps and chests
+  - Party wipe handling
+  - Victory and end-game handling
+- **Items and presentation**
+  - Inventory and item manipulation
+  - Special item powers and handling
+  - Compendium
+  - Music
+
+### Alpha #3 — Planned
+
+The broader Alpha #3 development cycle is focused on implementing **Magic and Combat**, together with **Creatures, Combat and NPCs**. I will release this as soon as feasible
+
+### Alpha #4 — Planned
+
+Current Alpha #3 targets include:
+
+- Encounter tables
+- Fixed combats
+- Treasure tables
+- Sound effects
+- Strict (Legacy) Mode
+
+## Development Roadmap
+
+With most of the original Wizardry I game framework now implemented, the main remaining areas of work are **spellcasting, combat, creatures and NPCs**. Obviously the roadmap will continue to evolve as the Alpha releases progress.
 
 ## Wishlist
 
-* Achievements and Quests
-* Radial Menu Control mode
-* Enhanced Quality-of-Life features
-* Sequels Content (II, III, V, maybe even IV?)
-* Procedurally-Generated Infinite Content
-* Monster Pits (practise against Encounters without risk of death or reward)
-* Migration to SDL3 from SDL2
-* Optional OpenGL Textured/Rendered 3D View
-* Wizardry VI implemented in the classic Wireframe Engine.
+Longer-term ideas include:
 
-## What next? (as of September 2026)
+- Achievements and quests
+- Radial-menu control mode
+- Additional quality-of-life features
+- Content from later Wizardry games — II, III, V, and possibly IV
+- Procedurally generated infinite content
+- Monster Pits for practising against encounters without risk or reward
+- Migration from SDL2 to SDL3
+- Optional textured/rendered OpenGL 3D dungeon view
+- Wizardry VI implemented using the classic wireframe engine
 
-**Alpha #1 is now out!**
+## Related Projects
 
-Spellcrafting and Combat are the only major things left to implement from the first Wizardry game! In the meantime, check out Snarfu's bugfix and recompilation of the original Wizardry for Apple II at <https://github.com/snafaru> or Sshoecraft's recreation in the terminal of the original trilogy, again for Apple II at <https://github.com/sshoecraft/wizardry>>.
+If you are interested in the original Wizardry games and related preservation/reimplementation work, see:
+
+- [Snarfu's Wizardry work](https://github.com/snafaru), including bug fixes and recompilation work for the original Apple II Wizardry.
+- [Sshoecraft's Wizardry recreation](https://github.com/sshoecraft/wizardry), a terminal-based recreation of the original Apple II trilogy.
+
+## System Requirements
+
+Sorcery requires:
+
+- **OpenGL 3.3**
+- **2 GB system memory**
+- Approximately **400 MB graphics memory** for Alpha #2
+- A 64-bit Windows or Debian/Ubuntu Linux environment
 
 ## Compilation
 
-Sorcery uses a **single source tree** which builds on both Linux and Windows. The primary development platform is Ubuntu/Debian Linux. Windows builds are supported using **MSYS2 UCRT64**, GCC, CMake and Ninja. Other Windows toolchains are not currently tested or supported by the project, although contributions documenting them are welcome. The project targets **C++26** and uses C++ reflection, so **GCC 16.1 or later is required**. The current development toolchain uses GCC 16.2. No separate Linux or Windows source tree is required. Platform-specific differences are handled by CMake and the source code. Please read the doc/COMPILE.md for full compilation instructions on both platforms. All code is released under the GPLv2 - see the doc/LICENSE.md file for full details.
+Sorcery uses a **single source tree** for Linux, Windows and macOS.
 
-**Graphics and music are used under appropriate licenses (see below), and are drawn/composed by humans.**
+The primary development platform is Ubuntu/Debian Linux. Windows builds are supported using **MSYS2 UCRT64**, GCC, CMake and Ninja. Other Windows toolchains are not currently tested or officially supported, although contributions documenting additional working configurations are welcome. For further information on experimental macOS support - see [native macOS development build](doc/MACOS.md) (using Apple Clang and a C++23 enum fallback)
+
+The project targets **C++26** and uses C++ reflection, so **GCC 16.1 or later is required**. The current development toolchain uses **GCC 16.2**. Platform-specific differences are handled by CMake and the source code; no separate source trees are required. See [`doc/COMPILE.md`](doc/COMPILE.md) for full build instructions on Windows and Linux.
+
+## License
+
+Sorcery source code is released under the **GNU GPLv2**. See [`doc/LICENSE.md`](doc/LICENSE.md) for full details.
+
+Graphics and music are used under their respective licenses, as listed below. Note that all artwork/music is authored by humans.
 
 ## Contact and Help
 
-All comments and criticism and help most welcome. You can mainly find me as *Typhon* on the C++ Help and DungeonCrawlers.org Discord Servers or email me at davemoore22 AT protonmail.com
+Comments, criticism, PRs, and contributions are most welcome.
+
+You can usually find me as **Typhon** on the **C++ Help** and **DungeonCrawlers.org** Discord servers, or contact me by email at:
+
+`davemoore22 AT protonmail.com`
 
 ## Credits
 
-Graphics used (Creative Commons) are by:
+### Programming Thanks
 
-* Toriotto - <https://www.pixiv.net/en/users/5887541>
-* Various - <https://game-icons.net/>
-* Xelu - <https://thoseawesomeguys.com/prompts/>
+Thanks to Greg Evans for code-tidy-up PRs and macOS support!
 
-Music used (Soundimage International Public License) is by:
+### Graphics Thanks
 
-* Eric Matyas - <https://www.soundimage.org>
+Creative Commons graphics are used from:
+
+- [Toriotto](https://www.pixiv.net/en/users/5887541)
+- [game-icons.net](https://game-icons.net/)
+- [Xelu](https://thoseawesomeguys.com/prompts/)
+
+### Music Thanks
+
+Music is used under the Soundimage International Public License and is by:
+
+- [Eric Matyas](https://www.soundimage.org)

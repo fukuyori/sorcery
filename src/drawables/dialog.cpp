@@ -30,11 +30,13 @@
 #include "resources/fontstore.hpp"	// for FontStore
 #include "types/component.hpp"		// for Component
 #include "types/enum.hpp"			// for DialogType, DialogType::CONFIRM
+#include <algorithm>				// for max
 #include <imgui_sugar.hpp>			// for set_StyleVar, BooleanGuard, set_...
-#include <algorithm>
 #include <memory>					// for unique_ptr
 #include <optional>					// for optional
-#include <string>					// for basic_string
+#include <ranges>
+#include <string> // for basic_string
+#include <string_view>
 
 Sorcery::Dialog::Dialog(Context &ctx)
 	: Drawable{ctx},
@@ -45,6 +47,8 @@ auto Sorcery::Dialog::build(Component &component) -> void {
 	Drawable::build(component);
 
 	_type = Enums::Layout::DialogType::CONFIRM;
+
+	_text.reset();
 }
 
 auto Sorcery::Dialog::build(Component &component, const Enums::Layout::DialogType type) -> void {
@@ -69,17 +73,50 @@ auto Sorcery::Dialog::display() -> void {
 	set_Font(_ctx.ui->fonts->get_current_font(_component->font).value(),
 			 _ctx.ui->metrics->font_sz() * _component->get_float("font_scale", 1.0f));
 
-	const auto text{_ctx.get_string(_component->string_key)};
+	const auto text{_text.value_or(_ctx.get_string(_component->string_key))};
+
+	// Measure the text one line at a time
+	const auto line_height{ImGui::GetTextLineHeightWithSpacing()};
+
+	auto line_count{0U};
+	auto max_text_width{0.0f};
+
+	std::string_view remaining{text};
+
+	while (true) {
+
+		const auto pos{remaining.find('\n')};
+		const auto line{remaining.substr(0, pos)};
+		const auto line_width{ImGui::CalcTextSize(line.data(), line.data() + line.size()).x};
+
+		max_text_width = std::max(max_text_width, line_width);
+		++line_count;
+
+		if (pos == std::string_view::npos)
+			break;
+
+		remaining.remove_prefix(pos + 1);
+	}
+
+	// Work out the required dialog dimensions
+	// The dialog is never narrower than its button row
 	const ImVec2 btn_size{ImGui::GetFontSize() * 7.0f, 0.0f};
 	const auto button_width{_type == Enums::Layout::DialogType::CONFIRM ? (btn_size.x * 2.0f) + (grid * 6.0f)
 																		  : btn_size.x + (grid * 4.0f)};
-	const auto width{std::max(ImGui::CalcTextSize(text.c_str()).x + (grid * 4.0f), button_width)};
-	const auto text_size{ImGui::CalcTextSize(text.c_str(), nullptr, false, width - (grid * 4.0f))};
-	const auto button_y{std::max(grid * 4.0f, (grid * 3.0f) + text_size.y)};
-	const auto height{std::max(_component->h * grid, button_y + ImGui::GetFrameHeight() + (grid * 2.0f))};
+	const auto width{std::max(max_text_width + (grid * 4.0f), button_width)};
+	const auto text_y{grid * 2.0f};
+	const auto text_height{static_cast<float>(line_count) * line_height};
+	const auto button_height{ImGui::GetFrameHeight()};
+	const auto button_gap{grid};
+	const auto bottom_margin{grid * 2.0f};
+	const auto required_height{text_y + text_height + button_gap + button_height + bottom_margin};
+
+	const auto height{std::max(static_cast<float>(_component->h) * grid, required_height)};
 	const auto centre{ImGui::GetMainViewport()->GetCenter()};
 
-	ImGui::SetNextWindowPos(centre, ImGuiCond_Always, ImVec2{0.5f, 0.5f});
+	const auto *viewport{ImGui::GetMainViewport()};
+	ImGui::SetNextWindowViewport(viewport->ID);
+	ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_Always, ImVec2{0.5f, 0.5f});
 	ImGui::SetNextWindowSize(ImVec2{width, height});
 	ImGui::SetNextWindowBgAlpha(1.0f);
 
@@ -88,18 +125,15 @@ auto Sorcery::Dialog::display() -> void {
 	set_StyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0.0f, 0.0f});
 	set_StyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 	set_StyleVar(ImGuiStyleVar_WindowRounding, static_cast<float>(rounding));
-
 	set_StyleColor(ImGuiCol_PopupBg, _component->background);
 	set_StyleColor(ImGuiCol_ButtonHovered, static_cast<ImVec4>(col));
 
 	UIStyle::set_faded(_ctx);
 
 	ImGui::OpenPopup(_id.c_str());
-
-	with_PopupModal(_id.c_str(), nullptr, ImGuiWindowFlags_NoDecoration) {
+	with_PopupModal(_id.c_str(), nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking) {
 
 		const auto p_min{ImGui::GetWindowPos()};
-
 		const auto p_max{ImVec2{p_min.x + width, p_min.y + height}};
 
 		_ctx.ui->draw_frame(
@@ -108,13 +142,34 @@ auto Sorcery::Dialog::display() -> void {
 			ImVec4{_ctx.ui->ui_bg_colour.x, _ctx.ui->ui_bg_colour.y, _ctx.ui->ui_bg_colour.z, _ctx.animation->fade},
 			rounding);
 
-		const auto text_x{std::max(grid * 2.0f, (width - text_size.x) / 2.0f)};
-		ImGui::SetCursorPos(ImVec2{text_x, grid * 2.0f});
-		ImGui::PushTextWrapPos(width - (grid * 2.0f));
-		ImGui::TextUnformatted(text.c_str());
-		ImGui::PopTextWrapPos();
+		// Draw each line centred
+
+		auto y{text_y};
+
+		remaining = text;
+
+		while (true) {
+
+			const auto pos{remaining.find('\n')};
+			const auto line{remaining.substr(0, pos)};
+			const auto line_width{ImGui::CalcTextSize(line.data(), line.data() + line.size()).x};
+			const auto x{(width - line_width) / 2.0f};
+
+			ImGui::SetCursorPos(ImVec2{x, y});
+			ImGui::TextUnformatted(line.data(), line.data() + line.size());
+
+			y += line_height;
+
+			if (pos == std::string_view::npos)
+				break;
+
+			remaining.remove_prefix(pos + 1);
+		}
+
+		// Buttons
 
 		const auto button_centre{width / 2.0f};
+		const auto button_y{height - bottom_margin - button_height};
 
 		using enum Enums::Layout::DialogType;
 
@@ -123,7 +178,6 @@ auto Sorcery::Dialog::display() -> void {
 			ImGui::SetCursorPos(ImVec2{button_centre - (btn_size.x + grid), button_y});
 
 			if (ImGui::Button(yes_lbl.c_str(), btn_size)) {
-
 				close(DrawableResult::ACCEPTED);
 				ImGui::CloseCurrentPopup();
 			}
@@ -131,7 +185,6 @@ auto Sorcery::Dialog::display() -> void {
 			ImGui::SetCursorPos(ImVec2{button_centre + grid, button_y});
 
 			if (ImGui::Button(no_lbl.c_str(), btn_size)) {
-
 				close(DrawableResult::CANCELLED);
 				ImGui::CloseCurrentPopup();
 			}
@@ -141,10 +194,14 @@ auto Sorcery::Dialog::display() -> void {
 			ImGui::SetCursorPos(ImVec2{button_centre - (btn_size.x / 2.0f), button_y});
 
 			if (ImGui::Button(ok_lbl.c_str(), btn_size)) {
-
 				close(DrawableResult::ACCEPTED);
 				ImGui::CloseCurrentPopup();
 			}
 		}
 	}
+}
+
+auto Sorcery::Dialog::set_text(std::string text) -> void {
+
+	_text = std::move(text);
 }

@@ -21,13 +21,13 @@
 // the resulting work.
 
 #include "types/character/inventory.hpp"
-#include "core/debug.hpp"
-#include <algorithm>  // for __any_of_fn, any_of, find_if
-#include <format>	  // for format
-#include <functional> // for invoke
-#include <ostream>	  // for basic_ostream, endl
-#include <ranges>	  // for __find_if_fn
-#include <string>	  // for basic_string, char_traits, operator<<, string
+#include "core/debug.hpp" // for DEBUG_LOGF, debug_logf
+#include <algorithm>	  // for __any_of_fn, any_of, find_if
+#include <format>		  // for format
+#include <functional>	  // for invoke
+#include <ostream>		  // for basic_ostream, endl
+#include <ranges>		  // for __find_if_fn
+#include <string>		  // for basic_string, char_traits, operator<<, string
 
 Sorcery::Inventory::Inventory() {
 
@@ -345,7 +345,7 @@ auto Sorcery::Inventory::_valid_slot(const unsigned int slot) const -> bool {
 	return slot > 0 && slot <= _items.size();
 }
 
-const auto Sorcery::Inventory::is_equippable_category(const Enums::Items::Category category) const -> bool {
+auto Sorcery::Inventory::is_equippable_category(const Enums::Items::Category category) const -> bool {
 
 	using enum Enums::Items::Category;
 
@@ -363,7 +363,7 @@ const auto Sorcery::Inventory::is_equippable_category(const Enums::Items::Catego
 	}
 }
 
-const auto Sorcery::Inventory::is_equippable_category(const Enums::Items::Category category) -> bool {
+auto Sorcery::Inventory::is_equippable_category(const Enums::Items::Category category) -> bool {
 
 	using enum Enums::Items::Category;
 

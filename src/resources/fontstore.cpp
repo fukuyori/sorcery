@@ -45,8 +45,9 @@ Sorcery::FontStore::FontStore(Context &ctx, ImGuiIO *io)
 	if (const auto advance{_ctx.get_config("Font", "glyph_extra_advance_x")}; !advance.empty())
 		_glyph_extra_advance_x = std::stof(advance);
 
-	// Scan the data directory for TrueType fonts and collections.
-	const std::filesystem::path file_path = std::filesystem::path{DATA_DIR} / FONT_DIR;
+	// Scan the font directory for TrueType fonts and collections, resolved relative to the executable,
+	// independent of the working directory.
+	const auto file_path{_ctx.get_directory(FONT_DIR)};
 	scan_and_load(file_path.string());
 	_sort_fonts_by_name();
 }
@@ -149,8 +150,8 @@ auto Sorcery::FontStore::_load_font(const std::string &path, bool is_monospace, 
 	config.RasterizerMultiply = _rasterizer_multiply;
 	config.GlyphExtraAdvanceX = _glyph_extra_advance_x;
 
-	// Make the font available to ImGui at different sizes by setting the size
-	// to 0.0f and using ImGui::SetFontScale() when rendering text.
+	// Make the font available to ImGui at different sizes by setting the size to 0.0f and using ImGui::SetFontScale()
+	// when rendering text
 	ImFont *font{_io->Fonts->AddFontFromFileTTF(path.c_str(), 0.0f, &config)};
 	if (!font) {
 
