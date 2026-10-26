@@ -65,7 +65,7 @@ $repo = Split-Path -Parent $PSScriptRoot
 $build = Resolve-PathFromRepo $BuildDir
 if (-not $OutputDir) {
     $OutputDir = if ($Sign) {
-        'dist\windows-signed\' + [guid]::NewGuid().ToString('N')
+        'dist\windows-signed'
     } else {
         'dist\windows'
     }
@@ -125,8 +125,12 @@ $versionLine = Select-String -LiteralPath (Join-Path $repo 'CMakeLists.txt') `
 if (-not $versionLine) { throw 'Unable to read the Sorcery version from CMakeLists.txt.' }
 $version = $versionLine.Matches[0].Groups[1].Value
 $installer = Join-Path $output "Sorcery-JA-$version-Setup.exe"
-if ($Sign -and (Test-Path -LiteralPath $installer)) {
-    throw "A signed output path must be empty: $installer"
+# Replace an earlier build of the same version. Remove it first so a failed build cannot leave the old
+# installer looking like the result of this run.
+foreach ($previous in @($installer, "${installer}.sha256")) {
+    if (Test-Path -LiteralPath $previous) {
+        Remove-Item -LiteralPath $previous -Force
+    }
 }
 
 $stage = Join-Path $repo ("build\installer-staging\" + [guid]::NewGuid().ToString('N'))
