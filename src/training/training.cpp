@@ -90,6 +90,11 @@ auto Sorcery::Training::start() -> int {
 				if (_ctx.ui->popup_manager->active())
 					_ctx.ui->popup_manager->close();
 
+				// Leave the same way as the menu option, otherwise Edge of Town still wants the Training Grounds
+				// and immediately comes back here
+				_ctx.game->save_game();
+				_ctx.controller->go_to(Enums::Screen::EDGEOFTOWN);
+
 				return BACK_TO_EDGE_OF_TOWN;
 			}
 		}
