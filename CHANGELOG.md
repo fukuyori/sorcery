@@ -1,12 +1,46 @@
 # Changelog
 
 Changes to the Windows and Japanese fork of Sorcery are recorded here.
-Fork releases are tagged `v<version>-ja`; 0.1.0-ja is based on upstream Alpha #1.
+Fork releases are tagged `v<version>-ja`; 0.1.0-ja is based on upstream Alpha #1, and 0.2.0-ja on upstream Alpha #2.
 The upstream project history remains in the [upstream README](README.md#upstream-readme-unchanged).
 
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+
+## [0.2.0-ja] - 2026-10-26
+
+Labelled "Alpha #2 JA". This is an alpha preview release based on upstream
+Alpha #2 (`7d6aa90c`); the game is incomplete, and saves and settings may not
+carry over to later versions.
+
+### Added
+
+- Japanese translations for the 56 string keys added by upstream Alpha #2
+  (spell target selection, context-sensitive help, and MALOR teleport
+  failures). Upstream ships 15 of the help keys with a key name as the
+  English text; their Japanese text is inferred from how the keys are used.
+
+### Changed
+
+- Merged upstream Alpha #2 (spellcasting, context-sensitive help, music volume,
+  save restoration, and macOS support).
+- Confirmation dialogs keep the fork's minimum width from the button row on top
+  of upstream's multi-line text layout.
+- Fonts are now found relative to the executable, following upstream.
+
+### Removed
+
+- The fork's post-build creation of `sav/characters` and `sav/states`;
+  upstream's `cmake/InitializeSaves.cmake` now creates them.
+
+### Known issues
+
+- The following text is hard-coded in English upstream and is not translated:
+  the help window heading (`HELP`), the music volume slider in Options
+  (`Music Volume`), the MALOR teleport
+  dialog (title, coordinate labels, help lines and buttons), and the cheat
+  tools window.
 
 ## [0.1.0-ja] - 2026-09-24
 

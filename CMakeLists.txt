@@ -2,11 +2,11 @@
 cmake_minimum_required(VERSION 3.22)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-project(sorcery VERSION 0.1.0)
+project(sorcery VERSION 0.2.0)
 
 include(cmake/SorceryPlatform.cmake)
 
-set(SORCERY_BUILD_LABEL "Alpha #1 JA")
+set(SORCERY_BUILD_LABEL "Alpha #2 JA")
 
 string(TIMESTAMP SORCERY_BUILD_DATE "%Y-%m-%d")
 

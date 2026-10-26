@@ -1,6 +1,6 @@
 # フォーク（Windows / 日本語版）の対応方針と設計
 
-最終更新: 2026-09-24
+最終更新: 2026-10-26
 
 このフォーク <https://github.com/fukuyori/sorcery> は
 <https://github.com/davemoore22/sorcery>（以下 upstream）を元に、Windows で動作する
@@ -43,7 +43,7 @@
 | 項目 | 決定 | 理由 |
 |---|---|---|
 | 取り込み方法 | upstream の新ブランチを土台に、フォーク独自の変更を機能単位で移植する | 強制マージは 46 件以上の衝突解決になり、結果の見通しが悪い |
-| 土台ブランチ | `upstream/master`（Alpha.1） | 最も安定。`Alpha_2` 系は変化が激しく再移植が増える |
+| 土台ブランチ | `upstream/master`（Alpha.1。2026-10-26 に Alpha.2 を取り込み済み） | 最も安定。`Alpha_2` 系は変化が激しく再移植が増える |
 | ビルド環境 | MSYS2 UCRT64 + GCC 16.2（upstream と同一） | 下記 2.2 |
 | 旧 Windows 対応 | 廃止（vcpkg.json、PowerShell スクリプト、MSVC 互換ヘッダ、`ext/`） | upstream が Windows を公式サポートしたため重複 |
 
@@ -71,14 +71,16 @@ MSVC を維持する案は、`meta.cpp` を magic_enum で置き換え、CMake �
   `cmake --build build --parallel` にかけ、警告 0、エラー 0 でビルド成功。
 - `build/dist/sorcery.exe` の起動と英語タイトル画面の表示を確認。
 
-### 2.4 upstream の既知の問題（フォークで修正済み）
+### 2.4 upstream の既知の問題
 
 | Issue | 内容 | 修正 |
 |---|---|---|
 | #1 | `sav/characters` と `sav/states` が Git に追跡されず、新規クローンでは起動時に必須ディレクトリ不在で終了する | PR #4: ポストビルドで `make_directory` |
 | #2 | `Win32RuntimeDependencies.cmake` の除外正規表現が `C:\WINDOWS\system32` の大文字に一致せず、システム DLL 246 個が `build/dist` にコピーされる | PR #3: 大文字小文字非依存の文字クラスに変更し、`CMP0207` を NEW に設定 |
 
-どちらも upstream の `master`、`Alpha_2`、`Alpha_2_Spellcasting` で未修正。
+#1 は upstream Alpha.2 の `cmake/InitializeSaves.cmake` で修正されたため、
+Alpha.2 の取り込み時にフォーク側の `make_directory` を削除した。
+#2 は Alpha.2（`7d6aa90c`）でも未修正で、フォークの修正を維持している。
 upstream には報告しない（7 章）。
 
 ---
@@ -89,7 +91,7 @@ upstream には報告しない（7 章）。
 
 | ブランチ | 役割 | コミット |
 |---|---|---|
-| `master`（既定） | フォークの主ブランチ。`upstream-master` + フォークの変更 | PR 経由のみ（ドキュメントのみの修正は直接コミット可） |
+| `master`（既定） | フォークの主ブランチ。`upstream-master` + フォークの変更 | PR 経由が原則。ドキュメントのみの修正、upstream の取り込み（3.2）、リリース準備（版数・変更履歴の更新）は直接コミット可 |
 | `upstream-master` | `upstream/master` のミラー | 禁止。fast-forward のみ |
 | `fix/<name>` | upstream にも送れる修正。**`upstream-master` から分岐** | PR → `master` |
 | `feature/<name>` | フォーク固有の機能。`master` から分岐 | PR → `master` |
@@ -110,6 +112,10 @@ git checkout master && git merge upstream-master
 
 `master` へはマージコミットで取り込む。フォークのコミットをリベースし続けると
 `origin/master` を毎回強制プッシュすることになるため。
+
+2026-10-26 に upstream Alpha.2（`upstream/master` = タグ `Alpha.2` = `7d6aa90c`）を
+この手順で取り込んだ（`feature/upstream-alpha2`）。Alpha.1 から履歴は書き換えられて
+おらず、fast-forward できた。フォーク版は 0.2.0-ja（表示ラベル「Alpha #2 JA」）とした。
 
 ### 3.3 upstream が再度 squash した場合
 
@@ -152,6 +158,17 @@ cmake --build build --parallel
 - ポストビルドでリポジトリの `cfg/`、`dat/` などが `build/dist/` に上書きコピー
   される。`build/dist/cfg/config.ini` を直接編集した場合はビルドのたびに戻るため、
   リポジトリ側の `cfg/config.ini` を編集するかバックアップを取る。
+  `sav/` は Alpha.2 から `cmake/InitializeSaves.cmake` で無いファイルだけを
+  コピーするため、既存のセーブデータは上書きされない。
+- Alpha.2 から実行ファイルの場所を基準にデータとフォントを探すため、
+  作業ディレクトリに依存しない。
+- upstream の互換性テスト（Alpha.2 で追加）は別のビルドディレクトリで実行する:
+
+```sh
+cmake -S . -B build/tests -G Ninja -DSORCERY_BUILD_TESTS=ON
+cmake --build build/tests --parallel
+ctest --test-dir build/tests --output-on-failure
+```
 
 ---
 

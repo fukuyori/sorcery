@@ -195,3 +195,76 @@
 | `CHEST_DISARMED` | You disarmed it! | 罠を解除した！ |
 | `CHEST_DISARM_FAILED` | Disarm failed! | 罠の解除に失敗！ |
 | `CHEST_ALREADY_INSPECTED` |  has already inspected! |  はすでに調べている！ |
+
+## Alpha.2 で追加された 56 キー（0.2.0-ja）
+
+upstream Alpha.2 の取り込みで追加した訳。英語欄がキー名と同じものは upstream が英語を未作成のキーで、
+`src/core/help.cpp` での用途から訳を推測した（※推測です。英語が確定したら見直す）。
+
+| キー | 英語 | 訳案 |
+|---|---|---|
+| `MODAL_SPELL_TITLE` | Cast which spell? | どの呪文を唱えますか？ |
+| `MODAL_PARTY_SPELL_TARGET` | Cast upon whom? | 誰に唱えますか？ |
+| `PARTY_SPELL_TARGET_TITLE` | Cast upon whom? | 誰に唱えますか？ |
+| `PARTY_SPELL_TARGET_RETURN` | <Return> | <戻る> |
+| `HELP_SELECT_ITEM` | Select Menu Item | メニュー項目を選ぶ |
+| `HELP_PREVIOUS_ITEM` | Previous Menu Item | 前のメニュー項目 |
+| `HELP_NEXT_ITEM` | Next Menu Item | 次のメニュー項目 |
+| `HELP_PREVIOUS_OPTION` | HELP_PREVIOUS_OPTION ※ | 前の設定項目 |
+| `HELP_NEXT_OPTION` | HELP_NEXT_OPTION ※ | 次の設定項目 |
+| `HELP_TOGGLE_OPTION` | HELP_TOGGLE_OPTION ※ | 設定を切り替える |
+| `HELP_SELECT_STAT` | HELP_SELECT_STAT ※ | 能力値を選ぶ |
+| `HELP_PREVIOUS_STAT` | HELP_SELECT_STAT ※ | 前の能力値 |
+| `HELP_NEXT_STAT` | HELP_NEXT_STAT ※ | 次の能力値 |
+| `HELP_DECREASE_STAT` | HELP_DECREASE_STAT ※ | 能力値を下げる |
+| `HELP_INCREASE_STAT` | HELP_INCREASE_STAT ※ | 能力値を上げる |
+| `HELP_SELECT_LETTER` | HELP_SELECT_LETTER ※ | 文字を選ぶ |
+| `HELP_ADD_LETTER` | HELP_ADD_LETTER ※ | 文字を追加 |
+| `HELP_TYPE_CHARACTER` | HELP_TYPE_CHARACTER ※ | 文字を入力 |
+| `HELP_ADD_SPACE` | HELP_ADD_SPACE ※ | 空白を追加 |
+| `HELP_GO_BACK` | Cancel/Go Back | 取り消し/戻る |
+| `HELP_SHOW_CONTROLS` | Show Help | ヘルプを表示 |
+| `HELP_Y_N_CONFIRMATION` | Confirm or Cancel | 決定または取り消し |
+| `HELP_NOTICE_OK` | Select OK | OK を選ぶ |
+| `HELP_CONFIRM_CONFIRMATION` | Select Confirm or Cancel | 決定または取り消しを選ぶ |
+| `HELP_SHOW_CHEAT` | Show Cheat Tools | チートツールを表示 |
+| `HELP_MOVE_FORWARDS` | Move Forwards/Open Door | 前進/扉を開ける |
+| `HELP_MOVE_BACKWARDS` | Move Backwards | 後退 |
+| `HELP_TURN_LEFT` | Turn Left | 左を向く |
+| `HELP_TURN_RIGHT` | Turn Right | 右を向く |
+| `HELP_TURN_AROUND` | Turn Around | 後ろを向く |
+| `HELP_CAMP` | Camp | キャンプ |
+| `HELP_QUICK_LOAD_SAVE` | Quick Load/Save | クイックロード/セーブ |
+| `HELP_QUICK_SAVE` | Quick_save | クイックセーブ |
+| `HELP_ACTION` | HELP_ACTION ※ | 行動 |
+| `HELP_SEARCH` | HELP_SEARCH ※ | 調べる |
+| `HELP_INSPECT` | HELP_INSPECT ※ | 見る |
+| `HELP_TOGGLE_GUI` | Show/Hide UI/Status | UI/ステータスの表示切り替え |
+| `HELP_AUTOMAP` | Display Automap | オートマップを表示 |
+| `HELP_TOGGLE_STATUS` | Shoqw/Hide Party Panel | パーティパネルの表示切り替え |
+| `HELP_QUIT_EXPEDITION` | Quit Expedition | 探索をやめる |
+| `HELP_FRONT_ROW` | Examine Front Row | 前列を調べる |
+| `HELP_BACK_ROW` | Examine Back Row | 後列を調べる |
+| `HELP_GUI_TOGGLE` | Switch On/Off Monochrome | モノクロ表示の切り替え |
+| `HELP_SAVE_AND_QUIT` | Save and Quit | セーブして終了 |
+| `MALOR_ROCK_1` | You have teleported into Solid Rock! | 岩の中に瞬間移動してしまった！ |
+| `MALOR_ROCK_2` | You all are lost forever! | 全員、永遠に失われた！ |
+| `MALOR_MOAT_1` | You have teleported into the Castle Moat! | 城の堀に瞬間移動してしまった！ |
+| `MALOR_MOAT_2` | You all swiftly drown! | 全員、たちまち溺れ死んだ！ |
+| `MALOR_VOLCANO_1` | You have teleported into a Volcano! | 火山の中に瞬間移動してしまった！ |
+| `MALOR_VOLCANO_2` | You all are lost forever! | 全員、永遠に失われた！ |
+| `MALOR_MID_AIR_1` | You have teleported into mid-air above the Castle! | 城の上空に瞬間移動してしまった！ |
+| `MALOR_MID_AIR_2` | You all fall to your deaths | 全員、墜落して死んだ |
+| `MALOR_BLOCK_1` | Your teleport fails! | 瞬間移動に失敗した！ |
+| `MALOR_BLOCK_2` | You cannot teleport from here! | ここからは瞬間移動できない！ |
+| `MALOR_BOUNCED_1` | Your teleport fails! | 瞬間移動に失敗した！ |
+| `MALOR_BOUNCED_2` | You are bounced back to where you came from | 元の場所に跳ね返された |
+
+## 英語のまま残す表示（0.2.0-ja）
+
+upstream のコードに英語で直接書かれており、`strings.json` を通らないため翻訳していない。
+
+- ヘルプ画面の見出し `HELP`（`src/display/ui/ui.cpp`）
+- オプション画面の `Music Volume`（`src/display/ui/ui.cpp`）
+- MALOR の瞬間移動ダイアログ（`src/drawables/malordialog.cpp`）
+- チートツール（`src/display/ui/ui.cpp`、`src/game/cheat.cpp`）

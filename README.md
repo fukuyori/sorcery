@@ -1,13 +1,13 @@
 # Sorcery — Windows and Japanese fork
 
 This fork of [Dave Moore's Sorcery](https://github.com/davemoore22/sorcery) adds
-Japanese text and a bundled Japanese font to the upstream Alpha #1 codebase.
+Japanese text and a bundled Japanese font to the upstream Alpha #2 codebase.
 The game is still under development. Both installed and portable builds start
 in Japanese; English can be selected in `config.ini`.
 
 Japanese guide: [README.ja.md](README.ja.md).
 
-Current fork release: **0.1.0-ja** ("Alpha #1 JA", based on upstream Alpha #1).
+Current fork release: **0.2.0-ja** ("Alpha #2 JA", based on upstream Alpha #2).
 This is an **alpha preview release**: the game is incomplete, and saves and
 settings may not carry over to later versions.
 The Windows installer is published on this fork's
@@ -15,14 +15,20 @@ The Windows installer is published on this fork's
 
 ## Changes from upstream
 
-- Japanese string overlay and translations. If the Japanese data cannot be
-  loaded, the game reports the error and continues with English strings.
+- Japanese string overlay and translations, including the spellcasting,
+  context-sensitive help and teleport messages added in upstream Alpha #2.
+  If the Japanese data cannot be loaded, the game reports the error and
+  continues with English strings.
 - A bundled `Sorcery JP Sans Medium` font derived from Noto Sans JP, with its
   [license and regeneration instructions](docs/ja-font.md).
 - Japanese menu alignment, title screen text sizing, and confirmation dialog
   sizing.
 - Windows GUI executable, which starts without opening a console window.
-- Windows build fixes for save directories and runtime dependency copying.
+- Windows build fix for runtime dependency copying. (The fork's fix for
+  missing save directories was dropped in 0.2.0-ja because upstream Alpha #2
+  creates them.)
+- Starts without music instead of exiting when the audio device cannot be
+  opened.
 
 The [fork design](docs/FORK_DESIGN.ja.md) records the porting decisions and
 remaining work. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
@@ -42,11 +48,13 @@ text = ProggyVector Regular
 language = en
 ```
 
-The font and `dat/strings.ja.json` are included in the build output. Start
-`build/dist/sorcery.exe` with `build/dist` as its working directory. The
-post-build copy overwrites `build/dist/cfg/config.ini` when the executable is
-relinked; edit `cfg/config.ini` in the source tree if you want the choice to
-persist across builds.
+The font and `dat/strings.ja.json` are included in the build output. Data and
+fonts are found relative to the executable, so `build/dist/sorcery.exe` can be
+started from any working directory. The post-build copy overwrites
+`build/dist/cfg/config.ini` when the executable is relinked; edit
+`cfg/config.ini` in the source tree if you want the choice to persist across
+builds. Existing saves in `build/dist/sav` are kept; only missing seed files are
+copied.
 
 **Known issue:** `cfg/`, `dat/`, `gfx/` and the other data directories are
 copied to `dist/` only when the executable is relinked. A build after changing
@@ -54,8 +62,12 @@ only data files reports `ninja: no work to do` and leaves the old data in
 `dist/`. Delete `dist/sorcery.exe` in the build directory (for example
 `build-release/dist/sorcery.exe`) before building to force the copy.
 
-The bundled font has been visually checked on the
-Japanese title screen and exit confirmation; other screens still need review.
+The bundled font has been visually checked on the Japanese title screen and
+exit confirmation. For 0.2.0-ja the Japanese title screen has been checked;
+the help window, spellcasting screens and other screens still need review. The
+help window heading, the music volume slider in Options, the MALOR teleport
+dialog and the cheat tools window are hard-coded in English upstream and stay
+in English.
 
 Installed copies display Japanese on first launch. To change the language or
 fonts, edit `%LOCALAPPDATA%\Sorcery-JA\cfg\config.ini`. Installed settings and
