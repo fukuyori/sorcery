@@ -1,12 +1,10 @@
 # Project Definition
 cmake_minimum_required(VERSION 3.22)
-set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
-endif()
 project(sorcery VERSION 0.1.0)
+
+include(cmake/SorceryPlatform.cmake)
 
 set(SORCERY_BUILD_LABEL "Alpha #1 JA")
 
@@ -112,7 +110,7 @@ target_link_libraries(dear_imgui PUBLIC
 
 target_compile_options(dear_imgui PRIVATE
 	-Wno-switch-default
-	-Wno-suggest-attribute=format
+	$<$<CXX_COMPILER_ID:GNU>:-Wno-suggest-attribute=format>
 )
 
 target_compile_definitions(dear_imgui PRIVATE
@@ -140,12 +138,12 @@ target_link_libraries(dear_imgui_toggle
 
 target_compile_options(dear_imgui_toggle PRIVATE
     -Wno-switch-default
-    -Wno-suggest-attribute=format
+    $<$<CXX_COMPILER_ID:GNU>:-Wno-suggest-attribute=format>
 )
 
 # Global Ifdefs
 add_library(sorcery_options INTERFACE)
-#target_compile_definitions(sorcery_options INTERFACE SORCERY_PROFILE)
+target_compile_definitions(sorcery_options INTERFACE SORCERY_PROFILE)
 target_compile_definitions(sorcery_options INTERFACE SORCERY_DEBUG)
 
 target_link_libraries(sorcery_options INTERFACE
@@ -163,11 +161,15 @@ target_compile_options(sorcery_warnings INTERFACE
 	-Wpedantic
 	-Wno-narrowing
 	-Wno-unused-parameter
+	-Wno-switch
 )
 
 # Platform libraries
 if(WIN32)
 	set(SORCERY_UUID_LIBRARY rpcrt4)
+elseif(APPLE)
+	# Darwin provides uuid functions in libSystem.
+	set(SORCERY_UUID_LIBRARY "")
 else()
 	set(SORCERY_UUID_LIBRARY uuid)
 endif()
@@ -178,6 +180,8 @@ include(src/display/CMakeLists.txt)
 include(src/drawables/CMakeLists.txt)
 include(src/engine/CMakeLists.txt)
 include(src/frontend/CMakeLists.txt)
+include(src/game/CMakeLists.txt)
+include(src/magic/CMakeLists.txt)
 include(src/modules/CMakeLists.txt)
 include(src/resources/CMakeLists.txt)
 include(src/training//CMakeLists.txt)
@@ -201,6 +205,12 @@ if(SORCERY_ENABLE_IWYU)
         PROPERTY CXX_INCLUDE_WHAT_YOU_USE "${IWYU_EXECUTABLE}")
 
     set_property(TARGET sorcery_frontend
+        PROPERTY CXX_INCLUDE_WHAT_YOU_USE "${IWYU_EXECUTABLE}")
+
+	set_property(TARGET sorcery_game
+        PROPERTY CXX_INCLUDE_WHAT_YOU_USE "${IWYU_EXECUTABLE}")
+
+    set_property(TARGET sorcery_magic
         PROPERTY CXX_INCLUDE_WHAT_YOU_USE "${IWYU_EXECUTABLE}")
 
     set_property(TARGET sorcery_modules
@@ -242,7 +252,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 	${CMAKE_SOURCE_DIR}/inc)
 
 
-if(NOT WIN32)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_options(${PROJECT_NAME} PRIVATE
         -pthread
         -pg
@@ -264,10 +274,10 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 	-Wcast-align
 	-Wformat-nonliteral
 	-Wformat=2
-	-Wsuggest-attribute=format
+	$<$<CXX_COMPILER_ID:GNU>:-Wsuggest-attribute=format>
 	-Winvalid-pch
 	-Wmissing-declarations
-	-Wmissing-format-attribute
+	$<$<CXX_COMPILER_ID:GNU>:-Wmissing-format-attribute>
 	-Wmissing-include-dirs
 	-Wredundant-decls
 	-Wodr
@@ -276,9 +286,11 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 	-Wno-narrowing
 	-g)
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-	BUILD_RPATH "$ORIGIN/lib;/opt/gcc-16.2/lib64"
-)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        BUILD_RPATH "$ORIGIN/lib;/opt/gcc-16.2/lib64"
+    )
+endif()
 
 
 target_link_libraries(sorcery_types
@@ -290,10 +302,11 @@ target_link_libraries(sorcery_types
 )
 
 target_link_libraries(sorcery_core PRIVATE
+	sorcery_magic
 	sorcery_types
 	sorcery_warnings
 	sorcery_options
-	stdc++exp
+	$<$<CXX_COMPILER_ID:GNU>:stdc++exp>
 )
 
 target_link_libraries(sorcery_engine PRIVATE
@@ -326,6 +339,19 @@ target_link_libraries(sorcery_frontend PRIVATE
 	sorcery_options
 )
 
+target_link_libraries(sorcery_game PRIVATE
+	sorcery_types
+	sorcery_magic
+	sorcery_warnings
+	sorcery_options
+)
+
+target_link_libraries(sorcery_magic PRIVATE
+	sorcery_types
+	sorcery_warnings
+	sorcery_options
+)
+
 target_link_libraries(sorcery_training PRIVATE
 	sorcery_types
 	sorcery_warnings
@@ -352,6 +378,9 @@ target_link_libraries(sorcery_resources
 # Link Libraries
 if(WIN32)
 	set(SORCERY_UUID_LIBRARY rpcrt4)
+elseif(APPLE)
+	# Darwin provides uuid functions in libSystem.
+	set(SORCERY_UUID_LIBRARY "")
 else()
 	set(SORCERY_UUID_LIBRARY uuid)
 endif()
@@ -364,7 +393,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	PkgConfig::LIBAV
 	Threads::Threads
 	${CMAKE_DL_LIBS}
-	stdc++fs
+	$<$<CXX_COMPILER_ID:GNU>:stdc++fs>
 	JsonCpp::JsonCpp
 	dear_imgui
 	imgui_toggle::imgui_toggle
@@ -374,6 +403,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	sorcery_display
 	sorcery_drawables
 	sorcery_frontend
+	sorcery_game
+	sorcery_magic
 	sorcery_modules
 	sorcery_resources
 	sorcery_training
@@ -436,16 +467,10 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 		"${CMAKE_SOURCE_DIR}/gfx"
 		"${SORCERY_DIST_DIR}/gfx"
 
-	COMMAND ${CMAKE_COMMAND} -E copy_directory
-		"${CMAKE_SOURCE_DIR}/sav"
-		"${SORCERY_DIST_DIR}/sav"
-
-	# sav/characters and sav/states are empty in a fresh checkout, so git
-	# does not track them and copy_directory above does not create them.
-	# The game refuses to start when they are missing, so create them here.
-	COMMAND ${CMAKE_COMMAND} -E make_directory
-		"${SORCERY_DIST_DIR}/sav/characters"
-		"${SORCERY_DIST_DIR}/sav/states"
+    COMMAND ${CMAKE_COMMAND}
+        "-DSORCERY_SOURCE_SAVES=${CMAKE_SOURCE_DIR}/sav"
+        "-DSORCERY_DEST_SAVES=${SORCERY_DIST_DIR}/sav"
+        -P "${CMAKE_SOURCE_DIR}/cmake/InitializeSaves.cmake"
 
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 		"${CMAKE_SOURCE_DIR}/sfx"
@@ -460,3 +485,9 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 set(CPACK_PROJECT_NAME sorcery)
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
+# Keep project checks separate from dependencies' BUILD_TESTING settings.
+option(SORCERY_BUILD_TESTS "Build Sorcery compatibility checks" OFF)
+if(SORCERY_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
