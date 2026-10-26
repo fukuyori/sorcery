@@ -34,6 +34,15 @@ carry over to later versions.
 - The fork's post-build creation of `sav/characters` and `sav/states`;
   upstream's `cmake/InitializeSaves.cmake` now creates them.
 
+### Fixed
+
+- The Windows GUI build no longer exits with `0xC0000409` after a while when
+  started without a console. Debug output written with `std::println` failed
+  because stdout had no destination; stdout and stderr are now attached to
+  `NUL` when missing.
+- Pressing Esc in the Training Grounds now returns to the Edge of Town instead
+  of re-entering the Training Grounds (an upstream issue).
+
 ### Known issues
 
 - The following text is hard-coded in English upstream and is not translated:

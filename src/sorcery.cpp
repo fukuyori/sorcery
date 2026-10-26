@@ -24,12 +24,35 @@
 
 #include "core/application.hpp" // for Application
 #include <memory>				// for make_unique
+#ifdef _WIN32
+#include <cstdio> // for freopen, stdout, stderr
+#include <io.h>	  // for _fileno, _get_osfhandle
+#endif
+
+#ifdef _WIN32
+/// @brief Attach a standard stream to NUL when it has no destination
+/// @param stream The stream to check
+/// @return
+static auto attach_to_nul_if_missing(std::FILE *stream) -> void {
+
+	// A GUI executable started without a console has no stdout/stderr, and std::println throws when it cannot
+	// write, which terminates the game
+	const auto fd{_fileno(stream)};
+	if (fd < 0 || _get_osfhandle(fd) < 0)
+		std::freopen("NUL", "w", stream);
+}
+#endif
 
 /// @brief Executablele Entry Point
 /// @param argc Command Line Argument Count
 /// @param argv Command Line Arguments
 /// @return An exit code
 auto main(int argc, char *argv[]) -> int {
+
+#ifdef _WIN32
+	attach_to_nul_if_missing(stdout);
+	attach_to_nul_if_missing(stderr);
+#endif
 
 	// Create an Application Instance
 	auto app{std::make_unique<Sorcery::Application>(argc, argv)};
